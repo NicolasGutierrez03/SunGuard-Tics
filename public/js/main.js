@@ -822,30 +822,37 @@ window.addEventListener('resize', () => {
 });
 
 // ===========================================================
-// INTEGRACIÓN CON API VERCEL (AUTH) - CORREGIDO
+// INTEGRACIÓN CON API VERCEL (AUTH)
 // ===========================================================
 
-// Función para el Registro
 async function enviarRegistroAWeb(event) {
-  event.preventDefault(); // Evita que la página se recargue solo
-  
-  // CORRECCIÓN: Se cambió 'reg-correo' por 'reg-email' para coincidir con tu HTML
-  const formData = {
-    nombre: document.getElementById('reg-nombre').value,
-    apellido: document.getElementById('reg-apellido').value,
-    rut: document.getElementById('reg-rut').value,
-    correo: document.getElementById('reg-email').value, // <-- CORREGIDO
-    contrasena: document.getElementById('reg-pass').value,
-    tipoUsuario: document.getElementById('reg-tipo').value,
-    empresa: document.getElementById('reg-empresa')?.value || null, 
-    cargo: document.getElementById('reg-cargo')?.value || null,
-    telefono: document.getElementById('reg-telefono')?.value || null
-  };
+  event.preventDefault();
 
-  // Validación extra por si acaso
-  const pass2 = document.getElementById('reg-pass2').value;
+  const formData = {
+    nombre: document.getElementById('reg-nombre')?.value?.trim() || '',
+    apellido: document.getElementById('reg-apellido')?.value?.trim() || '',
+    rut: document.getElementById('reg-rut')?.value?.trim() || '',
+    correo: document.getElementById('reg-email')?.value?.trim() || '',
+    contrasena: document.getElementById('reg-pass')?.value || '',
+    tipoUsuario: document.getElementById('reg-tipo')?.value || '',
+    empresa: document.getElementById('reg-empresa')?.value?.trim() || null,
+    cargo: document.getElementById('reg-cargo')?.value?.trim() || null,
+    telefono: document.getElementById('reg-telefono')?.value?.trim() || null
+  };
+  const pass2 = document.getElementById('reg-pass2')?.value || '';
+
+  if (!formData.nombre || !formData.apellido || !formData.rut || !formData.correo || !formData.contrasena) {
+    showToast('Completa todos los campos obligatorios.', 'error');
+    return;
+  }
+
+  if (!formData.tipoUsuario) {
+    showToast('Selecciona un tipo de usuario.', 'error');
+    return;
+  }
+
   if (formData.contrasena !== pass2) {
-    showToast('Las contraseñas no coinciden', 'error');
+    showToast('Las contraseñas no coinciden.', 'error');
     return;
   }
 
@@ -855,82 +862,34 @@ async function enviarRegistroAWeb(event) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     });
-    
+
     const data = await response.json();
-    if (response.ok) {
-      showToast('Registro exitoso. Ahora puedes iniciar sesión.', 'success');
-      if (typeof closeModal === 'function') closeModal('registro');
-    } else {
+
+    if (!response.ok) {
       showToast(data.error || 'Error en registro', 'error');
+      return;
     }
+
+    showToast('Registro exitoso. Ahora puedes iniciar sesión.', 'success');
+    const form = document.getElementById('form-registro');
+    if (form) form.reset();
+    const empresaFields = document.getElementById('empresa-fields');
+    if (empresaFields) empresaFields.style.display = 'none';
+    closeModal('registro');
   } catch (err) {
     showToast('Error de conexión con el servidor', 'error');
   }
 }
 
-// Función para el Login
-// Función para el Registro (Versión corregida y anti-bloqueos)
-async function enviarRegistroAWeb(event) {
-  event.preventDefault(); // Evita que la página se recargue
-
-  try {
-    // Capturamos los elementos de forma segura usando ?.value
-    const nombre = document.getElementById('reg-nombre')?.value || '';
-    const apellido = document.getElementById('reg-apellido')?.value || '';
-    const rut = document.getElementById('reg-rut')?.value || '';
-    const correo = document.getElementById('reg-email')?.value || '';
-    const contrasena = document.getElementById('reg-pass')?.value || '';
-    const tipoUsuario = document.getElementById('reg-tipo')?.value || '';
-    const empresa = document.getElementById('reg-empresa')?.value || '';
-    const cargo = document.getElementById('reg-cargo')?.value || '';
-    const telefono = document.getElementById('reg-telefono')?.value || '';
-    const pass2 = document.getElementById('reg-pass2')?.value || '';
-
-    // Validación de campos obligatorios en el Frontend
-    if (!nombre || !apellido || !rut || !correo || !contrasena) {
-      showToast('Por favor, rellena todos los campos obligatorios.', 'error');
-      return;
-    }
-
-    // Validación de contraseñas idénticas
-    if (contrasena !== pass2) {
-      showToast('Las contraseñas no coinciden.', 'error');
-      return;
-    }
-
-    const formData = {
-      nombre,
-      apellido,
-      rut,
-      correo,
-      contrasena,
-      tipoUsuario,
-      empresa,
-      cargo,
-      telefono
-    };
-
-    // Forzamos un mensaje en la consola del navegador para saber que sí se envió
-    console.log('Enviando datos a la API...', formData);
-
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    });
+// ESTO "ENCHUFA" EL BOTÓN CUANDO LA PÁGINA CARGA
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("Analizando DOM para conectar eventos...");
+    const formRegistro = document.getElementById('form-registro');
     
-    const data = await response.json();
-    
-    if (response.ok) {
-      showToast('Registro exitoso. Ahora puedes iniciar sesión.', 'success');
-      if (typeof closeModal === 'function') closeModal('registro');
+    if (formRegistro) {
+        formRegistro.addEventListener('submit', enviarRegistroAWeb);
+        console.log("✅ Formulario de registro conectado al JS.");
     } else {
-      // Si Neon o la API fallan, el error saltará aquí de forma visible
-      showToast(data.error || 'Error en registro', 'error');
-      if (data.details) console.error('Detalles de Neon:', data.details);
+        console.error("❌ ERROR: No se encontró '<form id=\"form-registro\">' en el HTML.");
     }
-  } catch (err) {
-    console.error('Error crítico en el JS del Frontend:', err);
-    showToast('Error interno en el formulario', 'error');
-  }
-}
+});

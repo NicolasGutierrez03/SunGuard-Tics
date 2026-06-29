@@ -1,7 +1,7 @@
-import { sql } from '@vercel/postgres';
-import bcrypt from 'bcryptjs';
+const { sql } = require('@vercel/postgres');
+const bcrypt = require('bcryptjs');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
 
   const { nombre, apellido, rut, correo, contrasena, tipoUsuario, empresa, cargo, telefono } = req.body;
@@ -54,4 +54,4 @@ export default async function handler(req, res) {
       details: error.message 
     });
   }
-}
+};

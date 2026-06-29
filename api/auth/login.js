@@ -1,8 +1,8 @@
-import { sql } from '@vercel/postgres';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+const { sql } = require('@vercel/postgres');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Solo aceptamos peticiones POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Método no permitido' });
@@ -66,4 +66,4 @@ export default async function handler(req, res) {
   } catch (error) {
     return res.status(500).json({ error: 'Error interno del servidor: ' + error.message });
   }
-}
+};

@@ -1,6 +1,6 @@
-import { sql } from '@vercel/postgres';
+const { sql } = require('@vercel/postgres');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
 
   const { device_mac, uv_actual, dosis_acumulada, bloqueador_activo } = req.body;
@@ -50,4 +50,4 @@ export default async function handler(req, res) {
   } catch (error) {
     return res.status(500).json({ error: 'Error de ingesta de datos IoT: ' + error.message });
   }
-}
+};
