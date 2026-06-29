@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SunGuard — Monitor UV Portátil</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+  <div class="loader-content">
+    <div class="loader-logo">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+        <circle cx="28" cy="28" r="26" stroke="#1E88E5" stroke-width="2" stroke-dasharray="163" stroke-dashoffset="163" class="loader-ring"/>
+        <path d="M28 14 L28 8 M28 48 L28 42 M14 28 L8 28 M48 28 L42 28" stroke="#1E88E5" stroke-width="2" stroke-linecap="round" class="loader-rays"/>
+        <circle cx="28" cy="28" r="8" fill="#1E88E5" class="loader-core"/>
+      </svg>
+    </div>
+    <div class="loader-text">SUNGUARD</div>
+    <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-container">
+    <a href="#inicio" class="nav-logo" onclick="scrollToSection('inicio')">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="8" fill="#1E88E5"/>
+        <path d="M16 2 L16 6 M16 26 L16 30 M2 16 L6 16 M26 16 L30 16 M5.5 5.5 L8.3 8.3 M23.7 23.7 L26.5 26.5 M26.5 5.5 L23.7 8.3 M8.3 23.7 L5.5 26.5" stroke="#1E88E5" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>SunGuard</span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" id="nav-links">
+      <li><a href="#inicio" onclick="navClick('inicio')">Inicio</a></li>
+      <li><a href="#sobre" onclick="navClick('sobre')">Sobre SunGuard</a></li>
+      <li><a href="#como-funciona" onclick="navClick('como-funciona')">Cómo funciona</a></li>
+      <li><a href="#caracteristicas" onclick="navClick('caracteristicas')">Características</a></li>
+      <li><a href="#beneficios" onclick="navClick('beneficios')">Beneficios</a></li>
+      <li><a href="#aplicaciones" onclick="navClick('aplicaciones')">Aplicaciones</a></li>
+      <li><a href="dashboard.html" class="nav-dash">Dashboard</a></li>
+      <li><a href="historial.html">Historial</a></li>
+      <li><a href="#equipo" onclick="navClick('equipo')">Equipo</a></li>
+      <li><a href="#contacto" onclick="navClick('contacto')">Contacto</a></li>
+      <li class="nav-divider"></li>
+      <li><a href="#" onclick="openModal('login')" class="btn-nav-login">Login</a></li>
+      <li><a href="#" onclick="openModal('registro')" class="btn-nav-register">Registro</a></li>
+      <li id="nav-profile-item" style="display:none"><a href="#" onclick="openModal('perfil')" class="btn-nav-profile">Mi Perfil</a></li>
+      <li id="nav-logout-item" style="display:none"><a href="#" onclick="logout()" class="btn-nav-logout">Salir</a></li>
+      <li>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
+          <span class="theme-icon">🌙</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ===================== HERO ===================== -->
+<section id="inicio" class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-particles" id="particles"></div>
+  <div class="hero-content">
+    <div class="hero-text">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Monitor UV Industrial — Versión 2.0
+      </div>
+      <h1 class="hero-title">
+        <span class="hero-title-main">SUNGUARD</span>
+        <span class="hero-title-sub">Monitor portátil de radiación UV</span>
+      </h1>
+      <p class="hero-desc">Protegiendo a quienes trabajan bajo la radiación solar. Tecnología de monitoreo UV en tiempo real para trabajadores expuestos al sol.</p>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-num">400</span>
+          <span class="stat-label">J/m² límite crítico</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">ESP32</span>
+          <span class="stat-label">Procesador IoT</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num">RT</span>
+          <span class="stat-label">Tiempo real</span>
+        </div>
+      </div>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="scrollToSection('sobre')">Ver Producto</button>
+        <button class="btn-secondary" onclick="openModal('login')">Iniciar Sesión</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="device-showcase">
+        <div class="device-card">
+          <div class="device-sensor-anim">
+            <div class="uv-ring ring-1"></div>
+            <div class="uv-ring ring-2"></div>
+            <div class="uv-ring ring-3"></div>
+            <div class="device-core">
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="10" fill="#1E88E5" opacity="0.9"/>
+                <path d="M20 4L20 10M20 30L20 36M4 20L10 20M30 20L36 20" stroke="#1E88E5" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M7.5 7.5L11.8 11.8M28.2 28.2L32.5 32.5M32.5 7.5L28.2 11.8M11.8 28.2L7.5 32.5" stroke="#1E88E5" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+          <div class="device-data-panel">
+            <div class="data-row">
+              <span class="data-label">Índice UV</span>
+              <span class="data-value uv-live" id="hero-uv">7.4</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Dosis</span>
+              <span class="data-value">182 J/m²</span>
+            </div>
+            <div class="data-row">
+              <span class="data-label">Estado</span>
+              <span class="data-value status-warn">PRECAUCIÓN</span>
+            </div>
+          </div>
+          <div class="device-leds">
+            <div class="led led-green active"></div>
+            <div class="led led-yellow"></div>
+            <div class="led led-red"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll-hint">
+    <span>Explorar</span>
+    <div class="scroll-arrow"></div>
+  </div>
+</section>
+
+<!-- ===================== PROBLEMA ===================== -->
+<section id="problema" class="section section-problema">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">El Problema</span>
+      <h2>Los trabajadores expuestos al sol enfrentan riesgos invisibles</h2>
+      <p>La radiación UV es acumulativa y silenciosa. Sin monitoreo, los daños ocurren antes de ser percibidos.</p>
+    </div>
+    <div class="problema-grid">
+      <div class="problema-card fade-in">
+        <div class="problema-icon" style="color:#F9A825">☀</div>
+        <h3>Exposición prolongada</h3>
+        <p>Jornadas de trabajo extensas bajo radiación solar directa sin medición del nivel de exposición.</p>
+      </div>
+      <div class="problema-card fade-in">
+        <div class="problema-icon" style="color:#D32F2F">⚠</div>
+        <h3>Sin información en tiempo real</h3>
+        <p>Los trabajadores desconocen el nivel de radiación UV que están recibiendo en cada momento.</p>
+      </div>
+      <div class="problema-card fade-in">
+        <div class="problema-icon" style="color:#D32F2F">🏥</div>
+        <h3>Quemaduras y lesiones</h3>
+        <p>La exposición excesiva provoca quemaduras solares que dañan capas profundas de la piel.</p>
+      </div>
+      <div class="problema-card fade-in">
+        <div class="problema-icon" style="color:#F9A825">🧬</div>
+        <h3>Envejecimiento prematuro</h3>
+        <p>La radiación UV acelera el fotoenvejecimiento cutáneo, causando daño celular irreversible.</p>
+      </div>
+      <div class="problema-card fade-in">
+        <div class="problema-icon" style="color:#D32F2F">🩺</div>
+        <h3>Riesgo de cáncer de piel</h3>
+        <p>La exposición acumulada no controlada es el principal factor de riesgo del cáncer de piel.</p>
+      </div>
+      <div class="problema-card fade-in">
+        <div class="problema-icon" style="color:#1E88E5">👷</div>
+        <h3>Trabajadores altamente expuestos</h3>
+        <p>Construcción, minería, agricultura: sectores donde la exposición solar es constante y desprotegida.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== QUÉ ES SUNGUARD ===================== -->
+<section id="sobre" class="section section-sobre">
+  <div class="container">
+    <div class="sobre-layout">
+      <div class="sobre-text fade-in">
+        <span class="section-eyebrow">¿Qué es SunGuard?</span>
+        <h2>Un guardián de radiación UV en tu bolsillo</h2>
+        <p class="sobre-lead">SunGuard es un dispositivo portátil capaz de monitorear radiación ultravioleta en tiempo real y alertar al usuario cuando su exposición acumulada alcanza niveles de riesgo.</p>
+        <p>Desarrollado con tecnología ESP32 y el sensor GUVA-S12SD, SunGuard procesa continuamente la radiación UV ambiental, calcula la dosis acumulada según los estándares internacionales y activa un sistema de alertas visuales y sonoras cuando se superan los umbrales de seguridad establecidos.</p>
+        <div class="sobre-features">
+          <div class="sf-item"><span class="sf-check">✓</span> Monitoreo en tiempo real</div>
+          <div class="sf-item"><span class="sf-check">✓</span> Alertas inmediatas</div>
+          <div class="sf-item"><span class="sf-check">✓</span> Conectividad WiFi</div>
+          <div class="sf-item"><span class="sf-check">✓</span> Dashboard en la nube</div>
+        </div>
+      </div>
+      <div class="sobre-visual fade-in">
+        <div class="prototype-diagram">
+          <div class="proto-img">
+            <img src="img/sunguard-prototype.png" alt="Prototipo SunGuard v1.0" />
+            <span class="proto-label">Prototipo SunGuard v1.0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== COMPONENTES ===================== -->
+<section id="componentes" class="section section-dark">
+  <div class="container">
+    <div class="section-header light">
+      <span class="section-eyebrow">Hardware</span>
+      <h2>Componentes del Dispositivo</h2>
+      <p>Cada componente fue seleccionado para garantizar precisión, eficiencia energética y confiabilidad en campo.</p>
+    </div>
+    <div class="components-diagram">
+      <div class="component-main-viz">
+        <div class="comp-board">
+          <!-- Component board visual -->
+          <svg width="100%" height="100%" viewBox="0 0 600 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- PCB background -->
+            <rect x="80" y="40" width="440" height="280" rx="16" fill="#0a1628" stroke="#1E88E5" stroke-width="1.5"/>
+            <rect x="88" y="48" width="424" height="264" rx="12" fill="#0d1e35" stroke="#1E88E5" stroke-width="0.5" opacity="0.4"/>
+
+            <!-- Mounting holes -->
+            <circle cx="98" cy="58" r="5" fill="none" stroke="#1E88E5" stroke-width="1" opacity="0.5"/>
+            <circle cx="502" cy="58" r="5" fill="none" stroke="#1E88E5" stroke-width="1" opacity="0.5"/>
+            <circle cx="98" cy="302" r="5" fill="none" stroke="#1E88E5" stroke-width="1" opacity="0.5"/>
+            <circle cx="502" cy="302" r="5" fill="none" stroke="#1E88E5" stroke-width="1" opacity="0.5"/>
+
+            <!-- ESP32 chip -->
+            <rect x="160" y="110" width="160" height="100" rx="6" fill="#1a2f4e" stroke="#1E88E5" stroke-width="1.5"/>
+            <rect x="168" y="118" width="144" height="84" rx="4" fill="#0f1e30"/>
+            <text x="240" y="155" fill="#1E88E5" font-size="12" text-anchor="middle" font-family="JetBrains Mono" font-weight="700">ESP32</text>
+            <text x="240" y="172" fill="#1E88E5" font-size="9" text-anchor="middle" font-family="JetBrains Mono" opacity="0.7">DevKit V1</text>
+            <text x="240" y="189" fill="#64b5f6" font-size="8" text-anchor="middle" font-family="JetBrains Mono" opacity="0.6">240MHz · WiFi · BT</text>
+            <!-- ESP32 pins -->
+            <rect x="155" y="120" width="5" height="6" rx="1" fill="#1E88E5" opacity="0.6"/>
+            <rect x="155" y="132" width="5" height="6" rx="1" fill="#1E88E5" opacity="0.6"/>
+            <rect x="155" y="144" width="5" height="6" rx="1" fill="#1E88E5" opacity="0.6"/>
+            <rect x="155" y="156" width="5" height="6" rx="1" fill="#1E88E5" opacity="0.6"/>
+            <rect x="155" y="168" width="5" height="6" rx="1" fill="#1E88E5" opacity="0.6"/>
+            <rect x="155" y="180" width="5" height="6" rx="1" fill="#1E88E5" opacity="0.6"/>
+            <rect x="320" y="120" width="5" height="6" rx="1" fill="#1E88E5" opacity="0.6"/>
+            <rect x="320" y="132" width="5" height="6" rx="1" fill="#1E88E5" opacity="0.6"/>
+            <rect x="320" y="144" width="5" height="6" rx="1" fill="#1E88E5" opacity="0.6"/>
+            <rect x="320" y="156" width="5" height="6" rx="1" fill="#1E88E5" opacity="0.6"/>
+            <rect x="320" y="168" width="5" height="6" rx="1" fill="#1E88E5" opacity="0.6"/>
+            <rect x="320" y="180" width="5" height="6" rx="1" fill="#1E88E5" opacity="0.6"/>
+
+            <!-- GUVA-S12SD sensor -->
+            <rect x="370" y="90" width="90" height="70" rx="6" fill="#1a2f4e" stroke="#F9A825" stroke-width="1.5"/>
+            <circle cx="415" cy="120" r="20" fill="#0f1e30" stroke="#F9A825" stroke-width="1"/>
+            <circle cx="415" cy="120" r="14" fill="#1a2f4e" stroke="#F9A825" stroke-width="0.8" opacity="0.6"/>
+            <circle cx="415" cy="120" r="6" fill="#F9A825" opacity="0.8"/>
+            <text x="415" y="148" fill="#F9A825" font-size="7" text-anchor="middle" font-family="JetBrains Mono">GUVA-S12SD</text>
+
+            <!-- LEDs -->
+            <circle cx="160" cy="260" r="12" fill="#2E7D32" opacity="0.9"/>
+            <circle cx="160" cy="260" r="8" fill="#4CAF50"/>
+            <text x="160" y="285" fill="#4CAF50" font-size="8" text-anchor="middle" font-family="JetBrains Mono">VERDE</text>
+            <circle cx="205" cy="260" r="12" fill="#F9A825" opacity="0.9"/>
+            <circle cx="205" cy="260" r="8" fill="#FFC107"/>
+            <text x="205" y="285" fill="#FFC107" font-size="8" text-anchor="middle" font-family="JetBrains Mono">AMARILLO</text>
+            <circle cx="250" cy="260" r="12" fill="#D32F2F" opacity="0.9"/>
+            <circle cx="250" cy="260" r="8" fill="#F44336"/>
+            <text x="250" y="285" fill="#F44336" font-size="8" text-anchor="middle" font-family="JetBrains Mono">ROJO</text>
+
+            <!-- Buzzer -->
+            <circle cx="330" cy="265" r="16" fill="#1a2f4e" stroke="#1E88E5" stroke-width="1.5"/>
+            <circle cx="330" cy="265" r="8" fill="#1E88E5" opacity="0.3"/>
+            <text x="330" y="290" fill="#1E88E5" font-size="8" text-anchor="middle" font-family="JetBrains Mono">BUZZER</text>
+
+            <!-- Buttons -->
+            <rect x="390" y="250" width="30" height="18" rx="4" fill="#1a2f4e" stroke="#64b5f6" stroke-width="1.2"/>
+            <text x="405" y="262" fill="#64b5f6" font-size="7" text-anchor="middle" font-family="JetBrains Mono">MUTE</text>
+            <rect x="435" y="250" width="30" height="18" rx="4" fill="#1a2f4e" stroke="#64b5f6" stroke-width="1.2"/>
+            <text x="450" y="262" fill="#64b5f6" font-size="7" text-anchor="middle" font-family="JetBrains Mono">RST</text>
+
+            <!-- Connection lines -->
+            <line x1="325" y1="155" x2="370" y2="130" stroke="#F9A825" stroke-width="1" stroke-dasharray="4,3" opacity="0.6"/>
+            <line x1="240" y1="210" x2="240" y2="248" stroke="#4CAF50" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+            <line x1="240" y1="210" x2="330" y2="248" stroke="#1E88E5" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+            <line x1="310" y1="185" x2="400" y2="250" stroke="#64b5f6" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+
+            <!-- Labels with lines -->
+            <line x1="240" y1="110" x2="240" y2="72" stroke="#1E88E5" stroke-width="1" opacity="0.6"/>
+            <rect x="174" y="58" width="132" height="14" rx="3" fill="#1E88E5" opacity="0.15"/>
+            <text x="240" y="69" fill="#1E88E5" font-size="8" text-anchor="middle" font-family="JetBrains Mono">ESP32 DevKit V1</text>
+
+            <line x1="415" y1="90" x2="415" y2="72" stroke="#F9A825" stroke-width="1" opacity="0.6"/>
+            <rect x="363" y="58" width="104" height="14" rx="3" fill="#F9A825" opacity="0.15"/>
+            <text x="415" y="69" fill="#F9A825" font-size="8" text-anchor="middle" font-family="JetBrains Mono">Sensor GUVA-S12SD</text>
+          </svg>
+        </div>
+      </div>
+      <div class="comp-labels-grid">
+        <div class="comp-label-item">
+          <div class="comp-dot" style="background:#1E88E5"></div>
+          <div>
+            <strong>ESP32 DevKit V1</strong>
+            <span>Microcontrolador de doble núcleo, 240MHz, WiFi y Bluetooth integrados</span>
+          </div>
+        </div>
+        <div class="comp-label-item">
+          <div class="comp-dot" style="background:#F9A825"></div>
+          <div>
+            <strong>Sensor GUVA-S12SD</strong>
+            <span>Fotodiodo UV de alta sensibilidad, rango 240-370nm, salida analógica</span>
+          </div>
+        </div>
+        <div class="comp-label-item">
+          <div class="comp-dot" style="background:#4CAF50"></div>
+          <div>
+            <strong>LEDs Indicadores</strong>
+            <span>Verde (seguro), Amarillo (precaución), Rojo (riesgo) — sistema semáforo</span>
+          </div>
+        </div>
+        <div class="comp-label-item">
+          <div class="comp-dot" style="background:#64b5f6"></div>
+          <div>
+            <strong>Buzzer Piezoeléctrico</strong>
+            <span>Alarma sonora progresiva al alcanzar umbrales de exposición</span>
+          </div>
+        </div>
+        <div class="comp-label-item">
+          <div class="comp-dot" style="background:#90caf9"></div>
+          <div>
+            <strong>Botón Mute</strong>
+            <span>Silencia la alarma sonora sin detener el monitoreo activo</span>
+          </div>
+        </div>
+        <div class="comp-label-item">
+          <div class="comp-dot" style="background:#b3e5fc"></div>
+          <div>
+            <strong>Botón Reset</strong>
+            <span>Reinicia la dosis acumulada al inicio de una nueva jornada laboral</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CÓMO FUNCIONA ===================== -->
+<section id="como-funciona" class="section section-como">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Proceso</span>
+      <h2>Cómo funciona SunGuard</h2>
+      <p>Un flujo de datos continuo y eficiente desde el sensor hasta la alerta al usuario.</p>
+    </div>
+    <div class="flow-diagram">
+      <div class="flow-step fade-in" style="--delay:0.0s">
+        <div class="flow-icon">☀</div>
+        <div class="flow-content">
+          <h4>Radiación UV</h4>
+          <p>El sol emite radiación ultravioleta entre 100-400nm sobre el trabajador</p>
+        </div>
+        <div class="flow-arrow">↓</div>
+      </div>
+      <div class="flow-step fade-in" style="--delay:0.1s">
+        <div class="flow-icon">🔬</div>
+        <div class="flow-content">
+          <h4>Sensor GUVA-S12SD</h4>
+          <p>Captura la radiación UV y genera una señal de voltaje analógica proporcional</p>
+        </div>
+        <div class="flow-arrow">↓</div>
+      </div>
+      <div class="flow-step fade-in" style="--delay:0.2s">
+        <div class="flow-icon">⚙</div>
+        <div class="flow-content">
+          <h4>ESP32 — Procesamiento</h4>
+          <p>El ADC convierte la señal analógica. El procesador calcula el índice UV actual</p>
+        </div>
+        <div class="flow-arrow">↓</div>
+      </div>
+      <div class="flow-step fade-in" style="--delay:0.3s">
+        <div class="flow-icon">📊</div>
+        <div class="flow-content">
+          <h4>Cálculo de Dosis Acumulada</h4>
+          <p>Suma continua de exposición. Si hay bloqueador activo: dosis × 0.2 (mitigador)</p>
+        </div>
+        <div class="flow-arrow">↓</div>
+      </div>
+      <div class="flow-step fade-in" style="--delay:0.4s">
+        <div class="flow-icon">🔍</div>
+        <div class="flow-content">
+          <h4>Evaluación de Riesgo</h4>
+          <p>Comparación de dosis acumulada con umbrales: 150 J/m² y 400 J/m²</p>
+        </div>
+        <div class="flow-arrow">↓</div>
+      </div>
+      <div class="flow-step fade-in" style="--delay:0.5s">
+        <div class="flow-icon">🚦</div>
+        <div class="flow-content">
+          <h4>Semáforo LED</h4>
+          <p>Activación del LED correspondiente según el nivel de riesgo detectado</p>
+        </div>
+        <div class="flow-arrow">↓</div>
+      </div>
+      <div class="flow-step fade-in" style="--delay:0.6s">
+        <div class="flow-icon">📡</div>
+        <div class="flow-content">
+          <h4>Transmisión WiFi</h4>
+          <p>El ESP32 envía los datos por WiFi al servidor en la nube vía HTTP/JSON</p>
+        </div>
+        <div class="flow-arrow">↓</div>
+      </div>
+      <div class="flow-step fade-in last" style="--delay:0.7s">
+        <div class="flow-icon">🔔</div>
+        <div class="flow-content">
+          <h4>Alerta Visual y Sonora</h4>
+          <p>Buzzer activado + LED rojo parpadeante + notificación push en el dashboard</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SEMÁFORO ===================== -->
+<section id="caracteristicas" class="section section-semaforo">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Sistema de Alerta</span>
+      <h2>Semáforo de Riesgo UV</h2>
+      <p>Tres niveles de alerta basados en la dosis acumulada de radiación ultravioleta.</p>
+    </div>
+    <div class="semaforo-grid">
+      <div class="semaforo-card verde fade-in">
+        <div class="semaforo-led">
+          <div class="led-big led-big-green">
+            <div class="led-glow-green"></div>
+          </div>
+        </div>
+        <div class="semaforo-info">
+          <h3>SEGURO</h3>
+          <div class="semaforo-range">&lt; 150 J/m²</div>
+          <p>Nivel de exposición dentro de parámetros seguros. El trabajador puede continuar su labor con normalidad.</p>
+          <div class="semaforo-actions">
+            <span class="badge-status green-badge">LED Verde Encendido</span>
+            <span class="badge-status green-badge">Sin alarma</span>
+          </div>
+        </div>
+      </div>
+      <div class="semaforo-card amarillo fade-in">
+        <div class="semaforo-led">
+          <div class="led-big led-big-yellow">
+            <div class="led-glow-yellow"></div>
+          </div>
+        </div>
+        <div class="semaforo-info">
+          <h3>PRECAUCIÓN</h3>
+          <div class="semaforo-range">150 – 400 J/m²</div>
+          <p>Exposición en zona de alerta. Se recomienda uso de bloqueador, buscar sombra o rotar actividades.</p>
+          <div class="semaforo-actions">
+            <span class="badge-status yellow-badge">LED Amarillo</span>
+            <span class="badge-status yellow-badge">Alarma intermitente</span>
+          </div>
+        </div>
+      </div>
+      <div class="semaforo-card rojo fade-in">
+        <div class="semaforo-led">
+          <div class="led-big led-big-red">
+            <div class="led-glow-red"></div>
+          </div>
+        </div>
+        <div class="semaforo-info">
+          <h3>RIESGO</h3>
+          <div class="semaforo-range">&gt; 400 J/m²</div>
+          <p>Nivel crítico. Exposición peligrosa para la salud. Se requiere retiro inmediato de la radiación solar.</p>
+          <div class="semaforo-actions">
+            <span class="badge-status red-badge">LED Rojo activo</span>
+            <span class="badge-status red-badge">Alarma continua</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FUNCIONALIDADES -->
+    <div class="section-header" style="margin-top:5rem">
+      <span class="section-eyebrow">Funcionalidades</span>
+      <h2>Todo lo que necesitas para monitorear UV</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card fade-in"><span class="feat-icon">📡</span><h4>Monitoreo en tiempo real</h4><p>Lectura continua del índice UV cada segundo</p></div>
+      <div class="feature-card fade-in"><span class="feat-icon">📈</span><h4>Dosis acumulada</h4><p>Cálculo progresivo de la exposición total del día</p></div>
+      <div class="feature-card fade-in"><span class="feat-icon">🚦</span><h4>Semáforo de riesgo</h4><p>Indicador visual tricolor instantáneo</p></div>
+      <div class="feature-card fade-in"><span class="feat-icon">🔔</span><h4>Alarma sonora</h4><p>Buzzer piezoeléctrico con tonos progresivos</p></div>
+      <div class="feature-card fade-in"><span class="feat-icon">🔇</span><h4>Función Mute</h4><p>Silencia temporalmente la alarma sin interrumpir el monitoreo</p></div>
+      <div class="feature-card fade-in"><span class="feat-icon">🔄</span><h4>Función Reset</h4><p>Reinicia el contador de dosis para nueva jornada</p></div>
+      <div class="feature-card fade-in"><span class="feat-icon">📋</span><h4>Historial</h4><p>Registro completo de exposición por jornada y semana</p></div>
+      <div class="feature-card fade-in"><span class="feat-icon">🖥</span><h4>Dashboard</h4><p>Panel de control visual accesible desde cualquier dispositivo</p></div>
+      <div class="feature-card fade-in"><span class="feat-icon">📊</span><h4>Estadísticas</h4><p>Análisis de promedios, máximos y mínimos de exposición</p></div>
+      <div class="feature-card fade-in"><span class="feat-icon">📄</span><h4>Reportes</h4><p>Exportación PDF y Excel de estadísticas técnicas</p></div>
+      <div class="feature-card fade-in"><span class="feat-icon">🔋</span><h4>Bajo consumo</h4><p>Optimizado para jornadas completas con batería compacta</p></div>
+      <div class="feature-card fade-in"><span class="feat-icon">📶</span><h4>Conectividad WiFi</h4><p>Sincronización automática con la plataforma en la nube</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BENEFICIOS ===================== -->
+<section id="beneficios" class="section section-beneficios">
+  <div class="container">
+    <div class="section-header light">
+      <span class="section-eyebrow">Beneficios</span>
+      <h2>Por qué elegir SunGuard</h2>
+    </div>
+    <div class="beneficios-grid">
+      <div class="beneficio-item fade-in">
+        <div class="ben-icon">🛡</div>
+        <h3>Prevención de daños UV</h3>
+        <p>Detección anticipada del riesgo antes de que la exposición alcance niveles dañinos para la salud.</p>
+      </div>
+      <div class="beneficio-item fade-in">
+        <div class="ben-icon">👷</div>
+        <h3>Mayor seguridad laboral</h3>
+        <p>Cumple con protocolos de prevención de riesgos ocupacionales en faenas industriales y al aire libre.</p>
+      </div>
+      <div class="beneficio-item fade-in">
+        <div class="ben-icon">📈</div>
+        <h3>Promueve el autocuidado</h3>
+        <p>Conciencia inmediata del estado de exposición fomenta hábitos saludables en los trabajadores.</p>
+      </div>
+      <div class="beneficio-item fade-in">
+        <div class="ben-icon">🔋</div>
+        <h3>Bajo consumo energético</h3>
+        <p>Diseñado para durar jornadas completas de 8-10 horas con batería de litio compacta.</p>
+      </div>
+      <div class="beneficio-item fade-in">
+        <div class="ben-icon">📦</div>
+        <h3>Portabilidad total</h3>
+        <p>Diseño compacto y robusto, resistente a polvo y humedad para trabajo en campo.</p>
+      </div>
+      <div class="beneficio-item fade-in">
+        <div class="ben-icon">💰</div>
+        <h3>Bajo costo de implementación</h3>
+        <p>Tecnología accesible para empresas de todos los tamaños, desde pymes hasta grandes consorcios.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== APLICACIONES ===================== -->
+<section id="aplicaciones" class="section section-apps">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Industrias</span>
+      <h2>Aplicaciones de SunGuard</h2>
+      <p>Diseñado para cualquier actividad laboral con exposición solar directa.</p>
+    </div>
+    <div class="apps-grid">
+      <div class="app-card fade-in" style="--accent:#F9A825">
+        <div class="app-icon">🏗</div>
+        <h3>Construcción</h3>
+        <p>Obreros en faenas de edificación, pavimentación y obra civil expuestos durante jornadas completas.</p>
+      </div>
+      <div class="app-card fade-in" style="--accent:#D32F2F">
+        <div class="app-icon">⛏</div>
+        <h3>Minería</h3>
+        <p>Personal en faenas a rajo abierto con radiación UV intensificada por la altitud en zonas mineras.</p>
+      </div>
+      <div class="app-card fade-in" style="--accent:#2E7D32">
+        <div class="app-icon">🌾</div>
+        <h3>Agricultura</h3>
+        <p>Trabajadores agrícolas en labores de cosecha, riego y mantención en terrenos abiertos.</p>
+      </div>
+      <div class="app-card fade-in" style="--accent:#1E88E5">
+        <div class="app-icon">⚙</div>
+        <h3>Mantención Industrial</h3>
+        <p>Técnicos y mecánicos en instalaciones industriales con exposición solar significativa.</p>
+      </div>
+      <div class="app-card fade-in" style="--accent:#F9A825">
+        <div class="app-icon">🏭</div>
+        <h3>Faenas al Aire Libre</h3>
+        <p>Cualquier actividad productiva realizada en exteriores con exposición solar prolongada.</p>
+      </div>
+      <div class="app-card fade-in" style="--accent:#2E7D32">
+        <div class="app-icon">🏃</div>
+        <h3>Deportes</h3>
+        <p>Atletas, entrenadores y personal de eventos deportivos en competencias o entrenamientos al exterior.</p>
+      </div>
+      <div class="app-card fade-in" style="--accent:#1E88E5">
+        <div class="app-icon">🔧</div>
+        <h3>Trabajos Viales</h3>
+        <p>Señaleros, operadores de maquinaria y trabajadores en proyectos viales de larga exposición.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== EQUIPO ===================== -->
+<section id="equipo" class="section section-equipo">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Desarrolladores</span>
+      <h2>Equipo SunGuard</h2>
+      <p>Ingeniería Civil en Informática y Telecomunicaciones · Universidad Diego Portales · Feria de Proyectos 2026</p>
+    </div>
+      <div class="team-card fade-in">
+        <div class="team-avatar">
+          <div class="avatar-placeholder">IU</div>
+        </div>
+        <h3>Isaac Uribe</h3>
+        <span class="team-role">Integración</span>
+        <p>Integración hardware-software, arquitectura ESP32, programación del sensor GUVA-S12SD.</p>
+      </div>
+      <div class="team-card fade-in">
+        <div class="team-avatar">
+          <div class="avatar-placeholder">FG</div>
+        </div>
+        <h3>Francisco Grandón</h3>
+        <span class="team-role">Documentación </span>
+        <p>Documentación técnica, análisis de requisitos.</p>
+      </div>
+      <div class="team-card fade-in">
+        <div class="team-avatar">
+          <div class="avatar-placeholder">NQ</div>
+        </div>
+        <h3>Nicolás Quintanilla</h3>
+        <span class="team-role">Testing</span>
+        <p>Pruebas de campo y validación del sistema de alertas.</p>
+      </div>
+      <div class="team-card fade-in">
+        <div class="team-avatar">
+          <div class="avatar-placeholder">NG</div>
+        </div>
+        <h3>Nicolás Gutiérrez</h3>
+        <span class="team-role">Frontend, Backend & Base de Datos</span>
+        <p>Diseño e implementación del dashboard, sistema de usuarios, experiencia de usuario, diseño  base de datos PostgreSQL y sincronización IoT-nube.</p>
+      </div>
+    </div>
+    <div class="team-footer">
+      <div class="univ-badge">
+        <span>🎓</span>
+        <div>
+          <strong>Universidad Diego Portales</strong>
+          <span>Facultad de Ingeniería y Ciencias · Feria de Proyectos 2026</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CONTACTO ===================== -->
+<section id="contacto" class="section section-contacto">
+  <div class="container">
+    <div class="contacto-layout">
+      <div class="contacto-info fade-in">
+        <span class="section-eyebrow">Contacto</span>
+        <h2>¿Tienes preguntas sobre SunGuard?</h2>
+        <p>Nuestro equipo está disponible para responder consultas sobre el dispositivo, implementación empresarial y soporte técnico.</p>
+        <div class="contact-items">
+          <div class="contact-item"><span>📧</span><span>sunguard@udp.cl</span></div>
+          <div class="contact-item"><span>🏫</span><span>Universidad Diego Portales, Santiago</span></div>
+          <div class="contact-item"><span>🔬</span><span>Laboratorio de Proyectos de Ingeniería 2026</span></div>
+        </div>
+      </div>
+      <form class="contacto-form fade-in" onsubmit="submitContacto(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" id="c-nombre" placeholder="Tu nombre" required />
+          </div>
+          <div class="form-group">
+            <label>Correo</label>
+            <input type="email" id="c-correo" placeholder="tu@email.com" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Asunto</label>
+          <input type="text" id="c-asunto" placeholder="Asunto del mensaje" required />
+        </div>
+        <div class="form-group">
+          <label>Mensaje</label>
+          <textarea id="c-mensaje" placeholder="Escribe tu mensaje aquí..." rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn-primary w-full">Enviar Mensaje</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="7" fill="#1E88E5"/>
+            <path d="M14 2L14 5M14 23L14 26M2 14L5 14M23 14L26 14" stroke="#1E88E5" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>SunGuard</span>
+        </div>
+        <p>Monitor portátil de radiación UV para trabajadores expuestos al sol. Proyecto universitario UDP 2026.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Plataforma</h4>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="historial.html">Historial</a>
+        <a href="#" onclick="openModal('registro')">Registro</a>
+      </div>
+      <div class="footer-links">
+        <h4>Producto</h4>
+        <a href="#" onclick="scrollToSection('sobre')">Sobre SunGuard</a>
+        <a href="#" onclick="scrollToSection('como-funciona')">Cómo funciona</a>
+        <a href="#" onclick="scrollToSection('aplicaciones')">Aplicaciones</a>
+      </div>
+      <div class="footer-links">
+        <h4>Universidad</h4>
+        <a href="#" onclick="scrollToSection('equipo')">Equipo</a>
+        <a href="#" onclick="scrollToSection('contacto')">Contacto</a>
+        <span style="opacity:.5;font-size:.8rem">UDP · FCEI · 2026</span>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 SunGuard · Universidad Diego Portales · Ingeniería Civil en Informática y Telecomunicaciones</span>
+      <span>Proyecto Académico — Feria de Proyectos 2026</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ===================== MODALES ===================== -->
+
+<!-- LOGIN -->
+<div id="modal-login" class="modal-overlay" onclick="closeModalOut(event,'login')">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('login')">✕</button>
+    <div class="modal-header">
+      <div class="modal-logo">☀</div>
+      <h2>Iniciar Sesión</h2>
+      <p>Accede a tu panel de monitoreo UV</p>
+    </div>
+    <!-- ID form-login agregado y onsubmit actualizado -->
+    <form id="form-login" onsubmit="enviarLoginAWeb(event)">
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="tu@email.com" required />
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" placeholder="••••••••" required />
+      </div>
+      <div class="form-row-check">
+        <label class="checkbox-label"><input type="checkbox" id="login-remember" /> Recordarme</label>
+        <a href="#" class="forgot-link" onclick="showToast('Función de recuperación próximamente disponible.','info')">¿Olvidaste tu contraseña?</a>
+      </div>
+      <button type="submit" class="btn-primary w-full">Ingresar</button>
+    </form>
+    <p class="modal-switch">¿No tienes cuenta? <a href="#" onclick="switchModal('login','registro')">Regístrate aquí</a></p>
+
+    <!-- DEMO accounts -->
+    <div class="demo-accounts">
+      <p>Cuentas de demostración:</p>
+      <div class="demo-btns">
+        <button onclick="loginDemo('trabajador')">👷 Trabajador</button>
+        <button onclick="loginDemo('supervisor')">👔 Supervisor</button>
+        <button onclick="loginDemo('admin')">🔑 Admin</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTRO -->
+<div id="modal-registro" class="modal-overlay" onclick="closeModalOut(event,'registro')">
+  <div class="modal-box modal-large">
+    <button class="modal-close" onclick="closeModal('registro')">✕</button>
+    <div class="modal-header">
+      <div class="modal-logo">📋</div>
+      <h2>Crear Cuenta</h2>
+      <p>Regístrate para acceder a SunGuard</p>
+    </div>
+    <!-- onsubmit actualizado -->
+    <form onsubmit="enviarRegistroAWeb(event)" id="form-registro">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" id="reg-nombre" placeholder="Tu nombre" required />
+        </div>
+        <div class="form-group">
+          <label>Apellido</label>
+          <input type="text" id="reg-apellido" placeholder="Tu apellido" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>RUT</label>
+          <input type="text" id="reg-rut" placeholder="12.345.678-9" required />
+        </div>
+        <div class="form-group">
+          <label>Tipo de usuario</label>
+          <select id="reg-tipo" onchange="toggleEmpresaFields()" required>
+            <option value="">Seleccionar...</option>
+            <option value="trabajador">Trabajador</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="reg-email" placeholder="tu@email.com" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="reg-pass" placeholder="••••••••" required minlength="6" />
+        </div>
+        <div class="form-group">
+          <label>Confirmar contraseña</label>
+          <input type="password" id="reg-pass2" placeholder="••••••••" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tipo de uso</label>
+        <div class="radio-group">
+          <label class="radio-label"><input type="radio" name="uso" value="personal" onchange="toggleEmpresaFields2()" checked /> Uso personal</label>
+          <label class="radio-label"><input type="radio" name="uso" value="empresa" onchange="toggleEmpresaFields2()" /> Empresa</label>
+        </div>
+      </div>
+      <div id="empresa-fields" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Empresa</label>
+            <input type="text" id="reg-empresa" placeholder="Nombre de la empresa" />
+          </div>
+          <div class="form-group">
+            <label>Cargo</label>
+            <input type="text" id="reg-cargo" placeholder="Tu cargo" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="tel" id="reg-telefono" placeholder="+56 9 XXXX XXXX" />
+        </div>
+      </div>
+      <button type="submit" class="btn-primary w-full">Crear Cuenta</button>
+    </form>
+    <p class="modal-switch">¿Ya tienes cuenta? <a href="#" onclick="switchModal('registro','login')">Inicia sesión aquí</a></p>
+  </div>
+</div>
+
+<!-- PERFIL -->
+<div id="modal-perfil" class="modal-overlay" onclick="closeModalOut(event,'perfil')">
+  <div class="modal-box modal-large">
+    <button class="modal-close" onclick="closeModal('perfil')">✕</button>
+    <div class="modal-header">
+      <div class="modal-logo" id="perfil-avatar-modal">👤</div>
+      <h2 id="perfil-nombre-modal">Mi Perfil</h2>
+      <p id="perfil-rol-modal">Trabajador</p>
+    </div>
+    <div class="perfil-content">
+      <div class="perfil-info-grid">
+        <div class="perfil-field"><label>Correo</label><span id="pf-email">—</span></div>
+        <div class="perfil-field"><label>Empresa</label><span id="pf-empresa">—</span></div>
+        <div class="perfil-field"><label>Cargo</label><span id="pf-cargo">—</span></div>
+        <div class="perfil-field"><label>Tipo de usuario</label><span id="pf-tipo">—</span></div>
+        <div class="perfil-field"><label>Última medición UV</label><span id="pf-last-uv">7.4</span></div>
+        <div class="perfil-field"><label>Dosis acumulada hoy</label><span id="pf-dosis">182 J/m²</span></div>
+        <div class="perfil-field"><label>Tiempo exposición</label><span id="pf-tiempo">4h 32m</span></div>
+      </div>
+      <div class="perfil-device-section">
+        <h3>Vincular Dispositivo ESP32</h3>
+        <p>Ingresa el código del dispositivo SunGuard para comenzar a recibir datos de tu sensor.</p>
+        <div class="device-link-form">
+          <input type="text" id="device-code" placeholder="SG-XXXX-XXXX (código del dispositivo)" class="device-input" />
+          <button class="btn-primary" onclick="linkDevice()">Vincular</button>
+        </div>
+        <div id="device-status" class="device-status"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SunGuard — Historial</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+</head>
+<body data-page="historial">
+
+<div id="loading-screen">
+  <div class="loader-content">
+    <div class="loader-logo">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+        <circle cx="28" cy="28" r="26" stroke="#1E88E5" stroke-width="2" stroke-dasharray="163" stroke-dashoffset="163" class="loader-ring"/>
+        <path d="M28 14 L28 8 M28 48 L28 42 M14 28 L8 28 M48 28 L42 28" stroke="#1E88E5" stroke-width="2" stroke-linecap="round" class="loader-rays"/>
+        <circle cx="28" cy="28" r="8" fill="#1E88E5" class="loader-core"/>
+      </svg>
+    </div>
+    <div class="loader-text">SUNGUARD</div>
+    <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<nav id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="8" fill="#1E88E5"/>
+        <path d="M16 2 L16 6 M16 26 L16 30 M2 16 L6 16 M26 16 L30 16 M5.5 5.5 L8.3 8.3 M23.7 23.7 L26.5 26.5 M26.5 5.5 L23.7 8.3 M8.3 23.7 L5.5 26.5" stroke="#1E88E5" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>SunGuard</span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html#inicio">Inicio</a></li>
+      <li><a href="index.html#sobre">Sobre SunGuard</a></li>
+      <li><a href="index.html#como-funciona">Cómo funciona</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="historial.html" class="nav-dash">Historial</a></li>
+      <li><a href="index.html#contacto">Contacto</a></li>
+      <li class="nav-divider"></li>
+      <li><a href="#" onclick="openModal('login')" class="btn-nav-login">Login</a></li>
+      <li><a href="#" onclick="openModal('registro')" class="btn-nav-register">Registro</a></li>
+      <li id="nav-profile-item" style="display:none"><a href="#" onclick="openModal('perfil')" class="btn-nav-profile">Mi Perfil</a></li>
+      <li id="nav-logout-item" style="display:none"><a href="#" onclick="logout()" class="btn-nav-logout">Salir</a></li>
+      <li>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
+          <span class="theme-icon">🌙</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<section class="section" style="padding-top: calc(var(--nav-h) + 2rem);">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Registros</span>
+      <h2>Historial de Exposición</h2>
+      <p>Consulta, filtra y exporta los registros acumulados de radiación UV por jornada.</p>
+      <div class="hero-actions" style="justify-content:center; margin-top: 1.5rem;">
+        <a class="btn-primary" href="dashboard.html">Ir al dashboard</a>
+        <a class="btn-secondary" href="index.html">Volver al inicio</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="historial" class="section section-historial">
+  <div class="container">
+    <div class="historial-controls">
+      <input type="text" id="hist-search" placeholder="Buscar por fecha o estado..." class="hist-input" oninput="filterHistorial()" />
+      <select id="hist-filter" class="hist-select" onchange="filterHistorial()">
+        <option value="">Todos los estados</option>
+        <option value="SEGURO">Seguro</option>
+        <option value="PRECAUCIÓN">Precaución</option>
+        <option value="RIESGO">Riesgo</option>
+      </select>
+      <button class="btn-export" onclick="exportCSV()">⬇ Exportar CSV</button>
+      <button class="btn-export btn-pdf" onclick="showToast('Generando reporte PDF...', 'info')">⬇ Generar PDF</button>
+    </div>
+    <div class="historial-table-wrap">
+      <table class="historial-table" id="historial-table">
+        <thead>
+          <tr>
+            <th onclick="sortHistorial('fecha')">Fecha ↕</th>
+            <th onclick="sortHistorial('hora')">Hora ↕</th>
+            <th onclick="sortHistorial('uv')">Índice UV ↕</th>
+            <th onclick="sortHistorial('dosis')">Dosis J/m² ↕</th>
+            <th onclick="sortHistorial('estado')">Estado ↕</th>
+            <th onclick="sortHistorial('tiempo')">Tiempo ↕</th>
+          </tr>
+        </thead>
+        <tbody id="historial-tbody"></tbody>
+      </table>
+    </div>
+    <div class="historial-pagination">
+      <button onclick="histPage(-1)" id="hist-prev">← Anterior</button>
+      <span id="hist-page-info">Página 1 de 3</span>
+      <button onclick="histPage(1)" id="hist-next">Siguiente →</button>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="7" fill="#1E88E5"/>
+            <path d="M14 2L14 5M14 23L14 26M2 14L5 14M23 14L26 14" stroke="#1E88E5" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>SunGuard</span>
+        </div>
+        <p>Monitor portátil de radiación UV para trabajadores expuestos al sol. Proyecto universitario UDP 2026.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Plataforma</h4>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="historial.html">Historial</a>
+        <a href="#" onclick="openModal('registro')">Registro</a>
+      </div>
+      <div class="footer-links">
+        <h4>Producto</h4>
+        <a href="index.html#sobre">Sobre SunGuard</a>
+        <a href="index.html#como-funciona">Cómo funciona</a>
+        <a href="index.html#aplicaciones">Aplicaciones</a>
+      </div>
+      <div class="footer-links">
+        <h4>Universidad</h4>
+        <a href="index.html#equipo">Equipo</a>
+        <a href="index.html#contacto">Contacto</a>
+        <span style="opacity:.5;font-size:.8rem">UDP · FCEI · 2026</span>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 SunGuard · Universidad Diego Portales · Ingeniería Civil en Informática y Telecomunicaciones</span>
+      <span>Proyecto Académico — Feria de Proyectos 2026</span>
+    </div>
+  </div>
+</footer>
+
+<!-- LOGIN -->
+<div id="modal-login" class="modal-overlay" onclick="closeModalOut(event,'login')">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('login')">✕</button>
+    <div class="modal-header">
+      <div class="modal-logo">☀</div>
+      <h2>Iniciar Sesión</h2>
+      <p>Accede a tu panel de monitoreo UV</p>
+    </div>
+    <!-- ID form-login agregado y onsubmit actualizado -->
+    <form id="form-login" onsubmit="enviarLoginAWeb(event)">
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="tu@email.com" required />
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" placeholder="••••••••" required />
+      </div>
+      <div class="form-row-check">
+        <label class="checkbox-label"><input type="checkbox" id="login-remember" /> Recordarme</label>
+        <a href="#" class="forgot-link" onclick="showToast('Función de recuperación próximamente disponible.','info')">¿Olvidaste tu contraseña?</a>
+      </div>
+      <button type="submit" class="btn-primary w-full">Ingresar</button>
+    </form>
+    <p class="modal-switch">¿No tienes cuenta? <a href="#" onclick="switchModal('login','registro')">Regístrate aquí</a></p>
+
+    <!-- DEMO accounts -->
+    <div class="demo-accounts">
+      <p>Cuentas de demostración:</p>
+      <div class="demo-btns">
+        <button onclick="loginDemo('trabajador')">👷 Trabajador</button>
+        <button onclick="loginDemo('supervisor')">👔 Supervisor</button>
+        <button onclick="loginDemo('admin')">🔑 Admin</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTRO -->
+<div id="modal-registro" class="modal-overlay" onclick="closeModalOut(event,'registro')">
+  <div class="modal-box modal-large">
+    <button class="modal-close" onclick="closeModal('registro')">✕</button>
+    <div class="modal-header">
+      <div class="modal-logo">📋</div>
+      <h2>Crear Cuenta</h2>
+      <p>Regístrate para acceder a SunGuard</p>
+    </div>
+    <!-- onsubmit actualizado -->
+    <form onsubmit="enviarRegistroAWeb(event)" id="form-registro">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" id="reg-nombre" placeholder="Tu nombre" required />
+        </div>
+        <div class="form-group">
+          <label>Apellido</label>
+          <input type="text" id="reg-apellido" placeholder="Tu apellido" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>RUT</label>
+          <input type="text" id="reg-rut" placeholder="12.345.678-9" required />
+        </div>
+        <div class="form-group">
+          <label>Tipo de usuario</label>
+          <select id="reg-tipo" onchange="toggleEmpresaFields()" required>
+            <option value="">Seleccionar...</option>
+            <option value="trabajador">Trabajador</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="reg-email" placeholder="tu@email.com" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="reg-pass" placeholder="••••••••" required minlength="6" />
+        </div>
+        <div class="form-group">
+          <label>Confirmar contraseña</label>
+          <input type="password" id="reg-pass2" placeholder="••••••••" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tipo de uso</label>
+        <div class="radio-group">
+          <label class="radio-label"><input type="radio" name="uso" value="personal" onchange="toggleEmpresaFields2()" checked /> Uso personal</label>
+          <label class="radio-label"><input type="radio" name="uso" value="empresa" onchange="toggleEmpresaFields2()" /> Empresa</label>
+        </div>
+      </div>
+      <div id="empresa-fields" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Empresa</label>
+            <input type="text" id="reg-empresa" placeholder="Nombre de la empresa" />
+          </div>
+          <div class="form-group">
+            <label>Cargo</label>
+            <input type="text" id="reg-cargo" placeholder="Tu cargo" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="tel" id="reg-telefono" placeholder="+56 9 XXXX XXXX" />
+        </div>
+      </div>
+      <button type="submit" class="btn-primary w-full">Crear Cuenta</button>
+    </form>
+    <p class="modal-switch">¿Ya tienes cuenta? <a href="#" onclick="switchModal('registro','login')">Inicia sesión aquí</a></p>
+  </div>
+</div>
+
+<div id="modal-perfil" class="modal-overlay" onclick="closeModalOut(event,'perfil')">
+  <div class="modal-box modal-large">
+    <button class="modal-close" onclick="closeModal('perfil')">✕</button>
+    <div class="modal-header">
+      <div class="modal-logo" id="perfil-avatar-modal">👤</div>
+      <h2 id="perfil-nombre-modal">Mi Perfil</h2>
+      <p id="perfil-rol-modal">Trabajador</p>
+    </div>
+    <div class="perfil-content">
+      <div class="perfil-info-grid">
+        <div class="perfil-field"><label>Correo</label><span id="pf-email">—</span></div>
+        <div class="perfil-field"><label>Empresa</label><span id="pf-empresa">—</span></div>
+        <div class="perfil-field"><label>Cargo</label><span id="pf-cargo">—</span></div>
+        <div class="perfil-field"><label>Tipo de usuario</label><span id="pf-tipo">—</span></div>
+        <div class="perfil-field"><label>Última medición UV</label><span id="pf-last-uv">7.4</span></div>
+        <div class="perfil-field"><label>Dosis acumulada hoy</label><span id="pf-dosis">182 J/m²</span></div>
+        <div class="perfil-field"><label>Tiempo exposición</label><span id="pf-tiempo">4h 32m</span></div>
+      </div>
+      <div class="perfil-device-section">
+        <h3>Vincular Dispositivo ESP32</h3>
+        <p>Ingresa el código del dispositivo SunGuard para comenzar a recibir datos de tu sensor.</p>
+        <div class="device-link-form">
+          <input type="text" id="device-code" placeholder="SG-XXXX-XXXX (código del dispositivo)" class="device-input" />
+          <button class="btn-primary" onclick="linkDevice()">Vincular</button>
+        </div>
+        <div id="device-status" class="device-status"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/main.js"></script>
+</body>
+</html>

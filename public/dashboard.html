@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SunGuard — Dashboard</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+</head>
+<body data-page="dashboard">
+
+<div id="loading-screen">
+  <div class="loader-content">
+    <div class="loader-logo">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+        <circle cx="28" cy="28" r="26" stroke="#1E88E5" stroke-width="2" stroke-dasharray="163" stroke-dashoffset="163" class="loader-ring"/>
+        <path d="M28 14 L28 8 M28 48 L28 42 M14 28 L8 28 M48 28 L42 28" stroke="#1E88E5" stroke-width="2" stroke-linecap="round" class="loader-rays"/>
+        <circle cx="28" cy="28" r="8" fill="#1E88E5" class="loader-core"/>
+      </svg>
+    </div>
+    <div class="loader-text">SUNGUARD</div>
+    <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<nav id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="8" fill="#1E88E5"/>
+        <path d="M16 2 L16 6 M16 26 L16 30 M2 16 L6 16 M26 16 L30 16 M5.5 5.5 L8.3 8.3 M23.7 23.7 L26.5 26.5 M26.5 5.5 L23.7 8.3 M8.3 23.7 L5.5 26.5" stroke="#1E88E5" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>SunGuard</span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html#inicio">Inicio</a></li>
+      <li><a href="index.html#sobre">Sobre SunGuard</a></li>
+      <li><a href="index.html#como-funciona">Cómo funciona</a></li>
+      <li><a href="dashboard.html" class="nav-dash">Dashboard</a></li>
+      <li><a href="historial.html">Historial</a></li>
+      <li><a href="index.html#contacto">Contacto</a></li>
+      <li class="nav-divider"></li>
+      <li><a href="#" onclick="openModal('login')" class="btn-nav-login">Login</a></li>
+      <li><a href="#" onclick="openModal('registro')" class="btn-nav-register">Registro</a></li>
+      <li id="nav-profile-item" style="display:none"><a href="#" onclick="openModal('perfil')" class="btn-nav-profile">Mi Perfil</a></li>
+      <li id="nav-logout-item" style="display:none"><a href="#" onclick="logout()" class="btn-nav-logout">Salir</a></li>
+      <li>
+        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
+          <span class="theme-icon">🌙</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<section class="section" style="padding-top: calc(var(--nav-h) + 2rem);">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Panel de Control</span>
+      <h2>Dashboard SunGuard</h2>
+      <p id="dashboard-user-msg">Inicia sesión para ver tus datos personalizados en tiempo real.</p>
+      <div class="hero-actions" style="justify-content:center; margin-top: 1.5rem;">
+        <a class="btn-primary" href="index.html">Volver al inicio</a>
+        <a class="btn-secondary" href="historial.html">Ver historial</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="dashboard" class="section section-dashboard">
+  <div class="container">
+    <div class="dashboard-grid">
+      <div class="dash-card dash-gauge">
+        <div class="dash-card-header">
+          <span class="dash-card-title">Índice UV Actual</span>
+          <span class="dash-card-badge live">● EN VIVO</span>
+        </div>
+        <div class="gauge-container">
+          <svg width="180" height="100" viewBox="0 0 180 100">
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#2E7D32"/>
+                <stop offset="40%" style="stop-color:#F9A825"/>
+                <stop offset="100%" style="stop-color:#D32F2F"/>
+              </linearGradient>
+            </defs>
+            <path d="M 20 90 A 70 70 0 0 1 160 90" stroke="#1a2f4e" stroke-width="14" fill="none" stroke-linecap="round"/>
+            <path id="gauge-arc" d="M 20 90 A 70 70 0 0 1 160 90" stroke="url(#gaugeGrad)" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="219.9" stroke-dashoffset="80"/>
+            <text x="90" y="82" fill="#1E88E5" font-size="28" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" id="uv-gauge-val">7.4</text>
+            <text x="90" y="97" fill="#888" font-size="9" text-anchor="middle" font-family="Inter">índice UV</text>
+          </svg>
+        </div>
+        <div class="gauge-labels">
+          <span style="color:#2E7D32">Bajo</span>
+          <span style="color:#F9A825">Moderado</span>
+          <span style="color:#D32F2F">Alto</span>
+        </div>
+      </div>
+
+      <div class="dash-card dash-dosis">
+        <div class="dash-card-header">
+          <span class="dash-card-title">Dosis Acumulada</span>
+          <span class="dash-card-badge warn">PRECAUCIÓN</span>
+        </div>
+        <div class="dosis-display">
+          <span class="dosis-val" id="dosis-val">182</span>
+          <span class="dosis-unit">J/m²</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="dosis-bar" style="width:45.5%; background: linear-gradient(90deg, #2E7D32, #F9A825)"></div>
+          <div class="progress-marker" style="left:37.5%" title="150 J/m²"></div>
+          <div class="progress-marker danger" style="left:100%" title="400 J/m²"></div>
+        </div>
+        <div class="progress-labels">
+          <span>0</span>
+          <span style="color:#F9A825">150</span>
+          <span style="color:#D32F2F">400 J/m²</span>
+        </div>
+      </div>
+
+      <div class="dash-card dash-semaforo">
+        <div class="dash-card-header">
+          <span class="dash-card-title">Estado Actual</span>
+        </div>
+        <div class="semaforo-display" id="semaforo-display">
+          <div class="sf-light sf-light-green off" id="sf-green"></div>
+          <div class="sf-light sf-light-yellow active" id="sf-yellow"></div>
+          <div class="sf-light sf-light-red off" id="sf-red"></div>
+        </div>
+        <div class="semaforo-label" id="semaforo-label" style="color:#F9A825">PRECAUCIÓN</div>
+      </div>
+
+      <div class="dash-card dash-timer">
+        <div class="dash-card-header">
+          <span class="dash-card-title">Tiempo de Exposición</span>
+          <button class="timer-btn" onclick="toggleTimer()" id="timer-btn">■ Pausar</button>
+        </div>
+        <div class="timer-display" id="timer-display">04:32:17</div>
+        <div class="timer-sub">Jornada activa desde las 08:15</div>
+      </div>
+
+      <div class="dash-card dash-stats">
+        <div class="dash-card-header">
+          <span class="dash-card-title">Estadísticas del Día</span>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="stat-box-val" id="stat-prom">6.8</span>
+            <span class="stat-box-label">Promedio UV</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box-val" id="stat-max">9.2</span>
+            <span class="stat-box-label">Máximo UV</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box-val" id="stat-min">3.1</span>
+            <span class="stat-box-label">Mínimo UV</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-box-val" id="stat-time">4h 32m</span>
+            <span class="stat-box-label">Tiempo total</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card dash-chart">
+        <div class="dash-card-header">
+          <span class="dash-card-title">Índice UV — Últimas 8 horas</span>
+        </div>
+        <canvas id="uv-chart" height="120"></canvas>
+      </div>
+
+      <div class="dash-card dash-resumen">
+        <div class="dash-card-header">
+          <span class="dash-card-title">Resumen de Jornada</span>
+        </div>
+        <div class="resumen-list">
+          <div class="resumen-item safe"><span>08:15 – 10:30</span><span>SEGURO ✓</span></div>
+          <div class="resumen-item warn"><span>10:30 – 12:45</span><span>PRECAUCIÓN ⚠</span></div>
+          <div class="resumen-item safe"><span>12:45 – 14:00</span><span>PAUSA 🌴</span></div>
+          <div class="resumen-item warn"><span>14:00 – ahora</span><span>PRECAUCIÓN ⚠</span></div>
+        </div>
+      </div>
+
+      <div class="dash-card dash-alerts">
+        <div class="dash-card-header">
+          <span class="dash-card-title">Alertas Recientes</span>
+        </div>
+        <div class="alerts-list">
+          <div class="alert-item level-warn">
+            <span class="alert-time">10:28</span>
+            <span class="alert-msg">Dosis alcanzó nivel de precaución (152 J/m²)</span>
+          </div>
+          <div class="alert-item level-safe">
+            <span class="alert-time">12:45</span>
+            <span class="alert-msg">Pausa iniciada — Dosis congelada</span>
+          </div>
+          <div class="alert-item level-warn">
+            <span class="alert-time">14:15</span>
+            <span class="alert-msg">Exposición acumulada retomada</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="supervisor-panel" style="display:none" class="supervisor-panel">
+      <h3>Resumen de Equipo — Vista Supervisor</h3>
+      <div class="team-status-grid" id="team-status-grid"></div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="7" fill="#1E88E5"/>
+            <path d="M14 2L14 5M14 23L14 26M2 14L5 14M23 14L26 14" stroke="#1E88E5" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <span>SunGuard</span>
+        </div>
+        <p>Monitor portátil de radiación UV para trabajadores expuestos al sol. Proyecto universitario UDP 2026.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Plataforma</h4>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="historial.html">Historial</a>
+        <a href="#" onclick="openModal('registro')">Registro</a>
+      </div>
+      <div class="footer-links">
+        <h4>Producto</h4>
+        <a href="index.html#sobre">Sobre SunGuard</a>
+        <a href="index.html#como-funciona">Cómo funciona</a>
+        <a href="index.html#aplicaciones">Aplicaciones</a>
+      </div>
+      <div class="footer-links">
+        <h4>Universidad</h4>
+        <a href="index.html#equipo">Equipo</a>
+        <a href="index.html#contacto">Contacto</a>
+        <span style="opacity:.5;font-size:.8rem">UDP · FCEI · 2026</span>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 SunGuard · Universidad Diego Portales · Ingeniería Civil en Informática y Telecomunicaciones</span>
+      <span>Proyecto Académico — Feria de Proyectos 2026</span>
+    </div>
+  </div>
+</footer>
+
+<!-- LOGIN -->
+<div id="modal-login" class="modal-overlay" onclick="closeModalOut(event,'login')">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('login')">✕</button>
+    <div class="modal-header">
+      <div class="modal-logo">☀</div>
+      <h2>Iniciar Sesión</h2>
+      <p>Accede a tu panel de monitoreo UV</p>
+    </div>
+    <!-- ID form-login agregado y onsubmit actualizado -->
+    <form id="form-login" onsubmit="enviarLoginAWeb(event)">
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="tu@email.com" required />
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" placeholder="••••••••" required />
+      </div>
+      <div class="form-row-check">
+        <label class="checkbox-label"><input type="checkbox" id="login-remember" /> Recordarme</label>
+        <a href="#" class="forgot-link" onclick="showToast('Función de recuperación próximamente disponible.','info')">¿Olvidaste tu contraseña?</a>
+      </div>
+      <button type="submit" class="btn-primary w-full">Ingresar</button>
+    </form>
+    <p class="modal-switch">¿No tienes cuenta? <a href="#" onclick="switchModal('login','registro')">Regístrate aquí</a></p>
+
+    <!-- DEMO accounts -->
+    <div class="demo-accounts">
+      <p>Cuentas de demostración:</p>
+      <div class="demo-btns">
+        <button onclick="loginDemo('trabajador')">👷 Trabajador</button>
+        <button onclick="loginDemo('supervisor')">👔 Supervisor</button>
+        <button onclick="loginDemo('admin')">🔑 Admin</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REGISTRO -->
+<div id="modal-registro" class="modal-overlay" onclick="closeModalOut(event,'registro')">
+  <div class="modal-box modal-large">
+    <button class="modal-close" onclick="closeModal('registro')">✕</button>
+    <div class="modal-header">
+      <div class="modal-logo">📋</div>
+      <h2>Crear Cuenta</h2>
+      <p>Regístrate para acceder a SunGuard</p>
+    </div>
+    <!-- onsubmit actualizado -->
+    <form onsubmit="enviarRegistroAWeb(event)" id="form-registro">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" id="reg-nombre" placeholder="Tu nombre" required />
+        </div>
+        <div class="form-group">
+          <label>Apellido</label>
+          <input type="text" id="reg-apellido" placeholder="Tu apellido" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>RUT</label>
+          <input type="text" id="reg-rut" placeholder="12.345.678-9" required />
+        </div>
+        <div class="form-group">
+          <label>Tipo de usuario</label>
+          <select id="reg-tipo" onchange="toggleEmpresaFields()" required>
+            <option value="">Seleccionar...</option>
+            <option value="trabajador">Trabajador</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="reg-email" placeholder="tu@email.com" required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" id="reg-pass" placeholder="••••••••" required minlength="6" />
+        </div>
+        <div class="form-group">
+          <label>Confirmar contraseña</label>
+          <input type="password" id="reg-pass2" placeholder="••••••••" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tipo de uso</label>
+        <div class="radio-group">
+          <label class="radio-label"><input type="radio" name="uso" value="personal" onchange="toggleEmpresaFields2()" checked /> Uso personal</label>
+          <label class="radio-label"><input type="radio" name="uso" value="empresa" onchange="toggleEmpresaFields2()" /> Empresa</label>
+        </div>
+      </div>
+      <div id="empresa-fields" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Empresa</label>
+            <input type="text" id="reg-empresa" placeholder="Nombre de la empresa" />
+          </div>
+          <div class="form-group">
+            <label>Cargo</label>
+            <input type="text" id="reg-cargo" placeholder="Tu cargo" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="tel" id="reg-telefono" placeholder="+56 9 XXXX XXXX" />
+        </div>
+      </div>
+      <button type="submit" class="btn-primary w-full">Crear Cuenta</button>
+    </form>
+    <p class="modal-switch">¿Ya tienes cuenta? <a href="#" onclick="switchModal('registro','login')">Inicia sesión aquí</a></p>
+  </div>
+</div>
+
+<div id="modal-perfil" class="modal-overlay" onclick="closeModalOut(event,'perfil')">
+  <div class="modal-box modal-large">
+    <button class="modal-close" onclick="closeModal('perfil')">✕</button>
+    <div class="modal-header">
+      <div class="modal-logo" id="perfil-avatar-modal">👤</div>
+      <h2 id="perfil-nombre-modal">Mi Perfil</h2>
+      <p id="perfil-rol-modal">Trabajador</p>
+    </div>
+    <div class="perfil-content">
+      <div class="perfil-info-grid">
+        <div class="perfil-field"><label>Correo</label><span id="pf-email">—</span></div>
+        <div class="perfil-field"><label>Empresa</label><span id="pf-empresa">—</span></div>
+        <div class="perfil-field"><label>Cargo</label><span id="pf-cargo">—</span></div>
+        <div class="perfil-field"><label>Tipo de usuario</label><span id="pf-tipo">—</span></div>
+        <div class="perfil-field"><label>Última medición UV</label><span id="pf-last-uv">7.4</span></div>
+        <div class="perfil-field"><label>Dosis acumulada hoy</label><span id="pf-dosis">182 J/m²</span></div>
+        <div class="perfil-field"><label>Tiempo exposición</label><span id="pf-tiempo">4h 32m</span></div>
+      </div>
+      <div class="perfil-device-section">
+        <h3>Vincular Dispositivo ESP32</h3>
+        <p>Ingresa el código del dispositivo SunGuard para comenzar a recibir datos de tu sensor.</p>
+        <div class="device-link-form">
+          <input type="text" id="device-code" placeholder="SG-XXXX-XXXX (código del dispositivo)" class="device-input" />
+          <button class="btn-primary" onclick="linkDevice()">Vincular</button>
+        </div>
+        <div id="device-status" class="device-status"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/main.js"></script>
+</body>
+</html>
