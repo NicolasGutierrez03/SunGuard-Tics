@@ -822,24 +822,32 @@ window.addEventListener('resize', () => {
 });
 
 // ===========================================================
-// INTEGRACIÓN CON API VERCEL (AUTH)
+// INTEGRACIÓN CON API VERCEL (AUTH) - CORREGIDO
 // ===========================================================
 
 // Función para el Registro
 async function enviarRegistroAWeb(event) {
-  event.preventDefault(); // Evita que la página se recargue
+  event.preventDefault(); // Evita que la página se recargue solo
   
+  // CORRECCIÓN: Se cambió 'reg-correo' por 'reg-email' para coincidir con tu HTML
   const formData = {
     nombre: document.getElementById('reg-nombre').value,
     apellido: document.getElementById('reg-apellido').value,
     rut: document.getElementById('reg-rut').value,
-    correo: document.getElementById('reg-correo').value,
+    correo: document.getElementById('reg-email').value, // <-- CORREGIDO
     contrasena: document.getElementById('reg-pass').value,
     tipoUsuario: document.getElementById('reg-tipo').value,
-    empresa: document.getElementById('reg-empresa')?.value, // Opcional
-    cargo: document.getElementById('reg-cargo')?.value,
-    telefono: document.getElementById('reg-telefono')?.value
+    empresa: document.getElementById('reg-empresa')?.value || null, 
+    cargo: document.getElementById('reg-cargo')?.value || null,
+    telefono: document.getElementById('reg-telefono')?.value || null
   };
+
+  // Validación extra por si acaso
+  const pass2 = document.getElementById('reg-pass2').value;
+  if (formData.contrasena !== pass2) {
+    showToast('Las contraseñas no coinciden', 'error');
+    return;
+  }
 
   try {
     const response = await fetch('/api/auth/register', {
@@ -851,7 +859,7 @@ async function enviarRegistroAWeb(event) {
     const data = await response.json();
     if (response.ok) {
       showToast('Registro exitoso. Ahora puedes iniciar sesión.', 'success');
-      closeModal('registro');
+      if (typeof closeModal === 'function') closeModal('registro');
     } else {
       showToast(data.error || 'Error en registro', 'error');
     }
@@ -864,8 +872,9 @@ async function enviarRegistroAWeb(event) {
 async function enviarLoginAWeb(event) {
   event.preventDefault();
   
+  // CORRECCIÓN: Se cambió 'login-correo' por 'login-email' para coincidir con tu HTML
   const datos = {
-    correo: document.getElementById('login-correo').value,
+    correo: document.getElementById('login-email').value, // <-- CORREGIDO
     contrasena: document.getElementById('login-pass').value
   };
 
@@ -888,21 +897,3 @@ async function enviarLoginAWeb(event) {
     showToast('Error de conexión con el servidor', 'error');
   }
 }
-
-// ============================================================
-// INICIALIZACIÓN DE EVENTOS DE FORMULARIOS (Agregar al final de main.js)
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // Conectar el formulario de registro (asegúrate que tu <form> en index.html tenga id="form-registro")
-    const formRegistro = document.getElementById('form-registro');
-    if (formRegistro) {
-        formRegistro.addEventListener('submit', enviarRegistroAWeb);
-    }
-
-    // Conectar el formulario de login (asegúrate que tu <form> en index.html tenga id="form-login")
-    const formLogin = document.getElementById('form-login');
-    if (formLogin) {
-        formLogin.addEventListener('submit', enviarLoginAWeb);
-    }
-});
