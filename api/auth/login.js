@@ -2,6 +2,18 @@ const { sql } = require('@vercel/postgres');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+function rolToTipo(rol) {
+  if (rol === 'Supervisor') return 'supervisor';
+  if (rol === 'Administrador') return 'admin';
+  return 'trabajador';
+}
+
+function buildAvatar(tipo) {
+  if (tipo === 'supervisor') return '👔';
+  if (tipo === 'admin') return '🔑';
+  return '👷';
+}
+
 module.exports = async function handler(req, res) {
   // Solo aceptamos peticiones POST
   if (req.method !== 'POST') {
@@ -17,9 +29,10 @@ module.exports = async function handler(req, res) {
   try {
     // 1. Buscar al usuario en la base de datos por su correo
     const { rows } = await sql`
-      SELECT id, correo, password_hash, rol, nombre, apellido, empresa_id, cargo 
-      FROM usuarios 
-      WHERE correo = ${correo};
+      SELECT u.id, u.correo, u.password_hash, u.rol, u.nombre, u.apellido, u.empresa_id, u.cargo, e.nombre_empresa 
+      FROM usuarios u
+      LEFT JOIN empresas e ON e.id = u.empresa_id
+      WHERE u.correo = ${correo};
     `;
 
     // Si no existe el correo, retornamos error genérico por seguridad
@@ -58,8 +71,12 @@ module.exports = async function handler(req, res) {
         nombre: usuario.nombre,
         apellido: usuario.apellido,
         correo: usuario.correo,
+        email: usuario.correo,
         rol: usuario.rol,
-        cargo: usuario.cargo || 'No especificado'
+        tipo: rolToTipo(usuario.rol),
+        cargo: usuario.cargo || 'No especificado',
+        empresa: usuario.nombre_empresa || '—',
+        avatar: buildAvatar(rolToTipo(usuario.rol))
       }
     });
 

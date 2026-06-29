@@ -1,5 +1,18 @@
 const { sql } = require('@vercel/postgres');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+function rolToTipo(rol) {
+  if (rol === 'Supervisor') return 'supervisor';
+  if (rol === 'Administrador') return 'admin';
+  return 'trabajador';
+}
+
+function buildAvatar(tipo) {
+  if (tipo === 'supervisor') return '👔';
+  if (tipo === 'admin') return '🔑';
+  return '👷';
+}
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
@@ -10,17 +23,22 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Faltan campos obligatorios' });
   }
 
+  const tipoNormalizado = String(tipoUsuario || '').toLowerCase();
+  if (!['trabajador', 'supervisor', 'admin'].includes(tipoNormalizado)) {
+    return res.status(400).json({ error: 'Tipo de usuario inválido' });
+  }
+
   try {
     const passwordHash = await bcrypt.hash(contrasena, 10);
-    
-    // CORRECCIÓN ENUM: Forzamos a que empiece con Mayúscula exactamente igual que en tu schema.sql
-    let rolAsignado = 'Trabajador'; 
-    if (tipoUsuario === 'supervisor') rolAsignado = 'Supervisor';
-    if (tipoUsuario === 'admin') rolAsignado = 'Administrador';
+
+    const rolAsignado = tipoNormalizado === 'supervisor'
+      ? 'Supervisor'
+      : tipoNormalizado === 'admin'
+        ? 'Administrador'
+        : 'Trabajador';
 
     let empresaId = null;
 
-    // Si viene una empresa asignada (Uso Empresa)
     if (empresa && empresa.trim() !== '') {
       const checkEmpresa = await sql`SELECT id FROM empresas WHERE rut_empresa = ${rut};`;
       
@@ -44,11 +62,44 @@ module.exports = async function handler(req, res) {
       VALUES (${rut}, ${nombre}, ${apellido}, ${correo}, ${passwordHash}, ${rolAsignado}, ${empresaId}, ${cargoFinal});
     `;
 
-    return res.status(201).json({ message: 'Usuario registrado con éxito' });
+    const usuarioQuery = await sql`
+      SELECT u.id, u.nombre, u.apellido, u.correo, u.rol, u.cargo, e.nombre_empresa
+      FROM usuarios u
+      LEFT JOIN empresas e ON e.id = u.empresa_id
+      WHERE u.correo = ${correo}
+      LIMIT 1;
+    `;
+
+    const usuario = usuarioQuery.rows[0];
+    const secreto = process.env.JWT_SECRET || 'secreto_desarrollo_sunguard_2026';
+    const token = jwt.sign(
+      { userId: usuario.id, rol: usuario.rol, empresaId },
+      secreto,
+      { expiresIn: '12h' }
+    );
+
+    return res.status(201).json({
+      message: 'Usuario registrado con éxito',
+      token,
+      user: {
+        id: usuario.id,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        correo: usuario.correo,
+        email: usuario.correo,
+        rol: usuario.rol,
+        tipo: rolToTipo(usuario.rol),
+        empresa: usuario.nombre_empresa || empresa || '—',
+        cargo: usuario.cargo || '—',
+        avatar: buildAvatar(rolToTipo(usuario.rol))
+      }
+    });
 
   } catch (error) {
     console.error('Error detectado en Neon:', error);
-    // Ahora enviamos el mensaje del error real para que lo veas en la consola del navegador
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'Ya existe un usuario o empresa con esos datos' });
+    }
     return res.status(500).json({ 
       error: 'Error en la base de datos', 
       details: error.message 

@@ -8,6 +8,7 @@
 // ============================================================
 const APP = {
   user: null,
+  token: null,
   timerRunning: true,
   timerSeconds: 16337, // 4h 32m 17s demo
   uvValue: 7.4,
@@ -87,23 +88,25 @@ function initApp() {
   initNavScroll();
   bindNavToggle();
 
-  if (isPage('dashboard')) {
-    startTimer();
-    startUVSimulation();
-    drawChart();
-  }
-
-  if (isPage('historial')) {
-    generateHistorialData();
-    renderHistorial();
-  }
-
   const saved = sessionStorage.getItem('sg_user');
   if (saved) {
     APP.user = JSON.parse(saved);
   }
 
+  const savedToken = sessionStorage.getItem('sg_token');
+  if (savedToken) {
+    APP.token = savedToken;
+  }
+
   updateUIForUser();
+
+  if (isPage('dashboard')) {
+    loadDashboardData();
+  }
+
+  if (isPage('historial')) {
+    loadHistorialData();
+  }
 }
 
 // ============================================================
@@ -236,22 +239,37 @@ function switchModal(from, to) {
 }
 
 // ============================================================
-// AUTENTICACIÓN DEMO
+// AUTENTICACIÓN
 // ============================================================
-function doLogin(e) {
+async function doLogin(e) {
   e.preventDefault();
-  const email = document.getElementById('login-email').value;
-  const pass = document.getElementById('login-pass').value;
+  const correo = document.getElementById('login-email')?.value?.trim() || '';
+  const contrasena = document.getElementById('login-pass')?.value || '';
 
-  // Demo validation
-  const found = Object.values(DEMO_USERS).find(u => u.email === email);
-  if (found && pass.length >= 4) {
-    loginSuccess(found);
-  } else if (pass.length < 4) {
-    showToast('La contraseña debe tener al menos 4 caracteres.', 'error');
-  } else {
-    // For demo, accept any email
-    loginSuccess({ ...DEMO_USERS.trabajador, nombre: email.split('@')[0], email });
+  if (!correo || !contrasena) {
+    showToast('Ingresa correo y contraseña.', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ correo, contrasena })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      showToast(data.error || 'Credenciales inválidas.', 'error');
+      return;
+    }
+
+    loginSuccess(data.user, data.token, { closeModalId: 'login' });
+    const form = document.getElementById('form-login');
+    if (form) form.reset();
+  } catch (error) {
+    showToast('Error de conexión con el servidor.', 'error');
   }
 }
 
@@ -259,19 +277,56 @@ function loginDemo(tipo) {
   loginSuccess(DEMO_USERS[tipo]);
 }
 
-function loginSuccess(user) {
-  APP.user = user;
-  sessionStorage.setItem('sg_user', JSON.stringify(user));
-  closeModal('login');
+function normalizeTipo(user) {
+  return user?.tipo || user?.rol?.toLowerCase?.() || 'trabajador';
+}
+
+function buildAvatar(tipo) {
+  if (tipo === 'supervisor') return '👔';
+  if (tipo === 'admin') return '🔑';
+  return '👷';
+}
+
+function normalizeUser(user) {
+  if (!user) return null;
+  const tipo = normalizeTipo(user);
+  return {
+    id: user.id || null,
+    nombre: user.nombre || '',
+    apellido: user.apellido || '',
+    email: user.email || user.correo || '',
+    correo: user.correo || user.email || '',
+    tipo,
+    rol: user.rol || tipo,
+    empresa: user.empresa || user.nombre_empresa || '—',
+    cargo: user.cargo || '—',
+    avatar: user.avatar || buildAvatar(tipo),
+  };
+}
+
+function loginSuccess(user, token = null, options = {}) {
+  const normalizedUser = normalizeUser(user);
+  APP.user = normalizedUser;
+  APP.token = token;
+  sessionStorage.setItem('sg_user', JSON.stringify(normalizedUser));
+  if (token) sessionStorage.setItem('sg_token', token);
+  const closeModalId = options.closeModalId || 'login';
+  closeModal(closeModalId);
   updateUIForUser();
-  showToast(`Bienvenido/a, ${user.nombre}!`, 'success');
+  showToast(`Bienvenido/a, ${normalizedUser.nombre}!`, 'success');
+  if (isPage('dashboard')) loadDashboardData();
+  if (isPage('historial')) loadHistorialData();
 }
 
 function logout() {
   APP.user = null;
+  APP.token = null;
   sessionStorage.removeItem('sg_user');
+  sessionStorage.removeItem('sg_token');
   updateUIForUser();
   showToast('Sesión cerrada correctamente.', 'info');
+  if (isPage('dashboard')) clearDashboardData();
+  if (isPage('historial')) clearHistorialData();
 }
 
 function updateUIForUser() {
@@ -303,13 +358,14 @@ function updateUIForUser() {
 }
 
 function updatePerfil(user) {
-  setText('perfil-nombre-modal', user.nombre);
-  setText('perfil-rol-modal', user.tipo.charAt(0).toUpperCase() + user.tipo.slice(1));
-  setText('perfil-avatar-modal', user.avatar || '👤');
-  setText('pf-email', user.email);
-  setText('pf-empresa', user.empresa || '—');
-  setText('pf-cargo', user.cargo || '—');
-  setText('pf-tipo', user.tipo);
+  const normalized = normalizeUser(user);
+  setText('perfil-nombre-modal', normalized.nombre);
+  setText('perfil-rol-modal', normalized.tipo.charAt(0).toUpperCase() + normalized.tipo.slice(1));
+  setText('perfil-avatar-modal', normalized.avatar || '👤');
+  setText('pf-email', normalized.email);
+  setText('pf-empresa', normalized.empresa || '—');
+  setText('pf-cargo', normalized.cargo || '—');
+  setText('pf-tipo', normalized.tipo);
   setText('pf-last-uv', APP.uvValue.toFixed(1));
   setText('pf-dosis', APP.dosis + ' J/m²');
   setText('pf-tiempo', formatDuration(APP.timerSeconds));
@@ -318,44 +374,52 @@ function updatePerfil(user) {
 // ============================================================
 // REGISTRO
 // ============================================================
-function doRegistro(e) {
+async function doRegistro(e) {
   e.preventDefault();
-  const nombre = document.getElementById('reg-nombre').value;
-  const apellido = document.getElementById('reg-apellido').value;
-  const email = document.getElementById('reg-email').value;
-  const pass = document.getElementById('reg-pass').value;
-  const pass2 = document.getElementById('reg-pass2').value;
-  const tipo = document.getElementById('reg-tipo').value;
+  const nombre = document.getElementById('reg-nombre')?.value?.trim() || '';
+  const apellido = document.getElementById('reg-apellido')?.value?.trim() || '';
+  const rut = document.getElementById('reg-rut')?.value?.trim() || '';
+  const correo = document.getElementById('reg-email')?.value?.trim() || '';
+  const contrasena = document.getElementById('reg-pass')?.value || '';
+  const pass2 = document.getElementById('reg-pass2')?.value || '';
+  const tipoUsuario = document.getElementById('reg-tipo')?.value || '';
+  const empresa = document.getElementById('reg-empresa')?.value?.trim() || null;
+  const cargo = document.getElementById('reg-cargo')?.value?.trim() || null;
+  const telefono = document.getElementById('reg-telefono')?.value?.trim() || null;
 
-  if (pass !== pass2) {
+  if (!nombre || !apellido || !rut || !correo || !contrasena || !tipoUsuario) {
+    showToast('Completa todos los campos obligatorios.', 'error');
+    return;
+  }
+
+  if (contrasena !== pass2) {
     showToast('Las contraseñas no coinciden.', 'error');
     return;
   }
-  if (pass.length < 6) {
-    showToast('La contraseña debe tener al menos 6 caracteres.', 'error');
-    return;
-  }
-  if (!tipo) {
-    showToast('Por favor selecciona un tipo de usuario.', 'error');
-    return;
-  }
 
-  const newUser = {
-    nombre: nombre + ' ' + apellido,
-    email,
-    tipo,
-    empresa: document.getElementById('reg-empresa')?.value || '—',
-    cargo: document.getElementById('reg-cargo')?.value || '—',
-    avatar: tipo === 'supervisor' ? '👔' : tipo === 'admin' ? '🔑' : '👷'
-  };
+  try {
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, apellido, rut, correo, contrasena, tipoUsuario, empresa, cargo, telefono })
+    });
 
-  loginSuccess(newUser);
-  closeModal('registro');
-  showToast('Cuenta creada correctamente. ¡Bienvenido/a!', 'success');
-  const form = document.getElementById('form-registro');
-  if (form) form.reset();
-  const empresaFields = document.getElementById('empresa-fields');
-  if (empresaFields) empresaFields.style.display = 'none';
+    const data = await response.json();
+
+    if (!response.ok) {
+      showToast(data.error || 'Error en registro.', 'error');
+      return;
+    }
+
+    loginSuccess(data.user, data.token, { closeModalId: 'registro' });
+    showToast('Cuenta creada correctamente. Sesión iniciada.', 'success');
+    const form = document.getElementById('form-registro');
+    if (form) form.reset();
+    const empresaFields = document.getElementById('empresa-fields');
+    if (empresaFields) empresaFields.style.display = 'none';
+  } catch (error) {
+    showToast('Error de conexión con el servidor.', 'error');
+  }
 }
 
 function toggleEmpresaFields2() {
@@ -409,6 +473,11 @@ function updateTimerDisplay() {
 }
 
 function toggleTimer() {
+  if (isPage('dashboard')) {
+    loadDashboardData();
+    showToast('Panel actualizado.', 'info');
+    return;
+  }
   APP.timerRunning = !APP.timerRunning;
   const btn = document.getElementById('timer-btn');
   if (btn) btn.textContent = APP.timerRunning ? '■ Pausar' : '▶ Reanudar';
@@ -532,6 +601,159 @@ function updateGaugeData() {
   const fraction = APP.uvValue / 11;
   const offset = total * (1 - fraction);
   arc.style.strokeDashoffset = offset;
+}
+
+function clearDashboardData() {
+  setText('uv-gauge-val', '—');
+  setText('dosis-val', '—');
+  setText('semaforo-label', 'Sin sesión');
+  setText('stat-prom', '—');
+  setText('stat-max', '—');
+  setText('stat-min', '—');
+  setText('stat-time', '—');
+  setText('timer-display', '00:00:00');
+  const bar = document.getElementById('dosis-bar');
+  if (bar) bar.style.width = '0%';
+  const badge = document.querySelector('.dash-card-badge.warn');
+  if (badge) badge.textContent = 'SIN SESIÓN';
+  const alerts = document.querySelector('.alerts-list');
+  if (alerts) alerts.innerHTML = '<div class="alert-item level-safe"><span class="alert-msg">Inicia sesión para cargar datos reales.</span></div>';
+  const resumen = document.querySelector('.resumen-list');
+  if (resumen) resumen.innerHTML = '<div class="resumen-item safe"><span>—</span><span>Sin datos</span></div>';
+  const canvas = document.getElementById('uv-chart');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
+function clearHistorialData() {
+  APP.histData = [];
+  APP.histPage = 1;
+  renderHistorial();
+}
+
+async function loadDashboardData() {
+  const userId = APP.user?.id;
+  if (!userId) {
+    clearDashboardData();
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/dashboard?usuario_id=${encodeURIComponent(userId)}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      clearDashboardData();
+      showToast(data.error || 'No se pudo cargar el dashboard.', 'error');
+      return;
+    }
+
+    APP.user = normalizeUser({ ...APP.user, ...data.user });
+    APP.uvValue = Number(data.latest?.uv ?? 0);
+    APP.dosis = Number(data.latest?.dosis ?? 0);
+    APP.timerSeconds = Math.max(0, Math.round(data.stats?.seconds ?? APP.timerSeconds));
+    APP.chartData = data.chartData || [];
+
+    setText('uv-gauge-val', data.latest ? APP.uvValue.toFixed(1) : '—');
+    setText('dosis-val', data.latest ? Math.round(APP.dosis) : '—');
+    setText('stat-prom', data.stats?.promedio || '—');
+    setText('stat-max', data.stats?.maximo || '—');
+    setText('stat-min', data.stats?.minimo || '—');
+    setText('stat-time', data.stats?.tiempo || '—');
+    setText('timer-display', formatDuration(APP.timerSeconds).time);
+
+    const badge = document.querySelector('.dash-card-badge.warn');
+    if (badge) badge.textContent = data.latest?.estado || 'SEGURO';
+
+    const semaforo = document.getElementById('semaforo-label');
+    if (semaforo) {
+      semaforo.textContent = data.latest?.estado || 'SEGURO';
+      semaforo.style.color = data.latest?.estado === 'RIESGO' ? 'var(--red)' : data.latest?.estado === 'PRECAUCIÓN' ? 'var(--yellow)' : 'var(--green)';
+    }
+
+    const bar = document.getElementById('dosis-bar');
+    if (bar) {
+      const pct = Math.min(100, (APP.dosis / 400) * 100);
+      bar.style.width = `${pct}%`;
+      if (APP.dosis >= 400) {
+        bar.style.background = 'linear-gradient(90deg, #2E7D32, #F9A825, #D32F2F)';
+      } else if (APP.dosis >= 150) {
+        bar.style.background = 'linear-gradient(90deg, #2E7D32, #F9A825)';
+      } else {
+        bar.style.background = '#2E7D32';
+      }
+    }
+
+    const alerts = document.querySelector('.alerts-list');
+    if (alerts) {
+      alerts.innerHTML = (data.alerts || []).map(alert => `
+        <div class="alert-item level-${alert.state === 'RIESGO' ? 'danger' : 'warn'}">
+          <span class="alert-time">${alert.time}</span>
+          <span class="alert-msg">${alert.message}</span>
+        </div>
+      `).join('') || '<div class="alert-item level-safe"><span class="alert-msg">Sin alertas recientes.</span></div>';
+    }
+
+    const resumen = document.querySelector('.resumen-list');
+    if (resumen) {
+      resumen.innerHTML = (data.resumen || []).map(item => `
+        <div class="resumen-item ${item.state === 'RIESGO' ? 'warn' : 'safe'}">
+          <span>${item.time}</span>
+          <span>${item.state} · ${item.label}</span>
+        </div>
+      `).join('') || '<div class="resumen-item safe"><span>—</span><span>Sin datos suficientes</span></div>';
+    }
+
+    if (APP.chartData.length > 1) {
+      const canvas = document.getElementById('uv-chart');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        renderChart(ctx, canvas);
+      }
+    }
+
+    updateUIForUser();
+  } catch (error) {
+    clearDashboardData();
+    showToast('Error al cargar el dashboard.', 'error');
+  }
+}
+
+async function loadHistorialData() {
+  const userId = APP.user?.id;
+  if (!userId) {
+    clearHistorialData();
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/historial?usuario_id=${encodeURIComponent(userId)}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      APP.histData = [];
+      renderHistorial();
+      showToast(data.error || 'No se pudo cargar el historial.', 'error');
+      return;
+    }
+
+    APP.histData = (data.historial || []).map(row => ({
+      fecha: row.fecha,
+      hora: row.hora,
+      uv: Number(row.uv),
+      dosis: Number(row.dosis),
+      estado: row.estado,
+      tiempo: row.tiempo,
+    }));
+    APP.histPage = 1;
+    renderHistorial();
+  } catch (error) {
+    APP.histData = [];
+    renderHistorial();
+    showToast('Error al cargar el historial.', 'error');
+  }
 }
 
 // ============================================================
@@ -821,73 +1043,17 @@ window.addEventListener('resize', () => {
   }, 200);
 });
 
-// ===========================================================
-// INTEGRACIÓN CON API VERCEL (AUTH)
-// ===========================================================
-
-async function enviarRegistroAWeb(event) {
-  event.preventDefault();
-
-  const formData = {
-    nombre: document.getElementById('reg-nombre')?.value?.trim() || '',
-    apellido: document.getElementById('reg-apellido')?.value?.trim() || '',
-    rut: document.getElementById('reg-rut')?.value?.trim() || '',
-    correo: document.getElementById('reg-email')?.value?.trim() || '',
-    contrasena: document.getElementById('reg-pass')?.value || '',
-    tipoUsuario: document.getElementById('reg-tipo')?.value || '',
-    empresa: document.getElementById('reg-empresa')?.value?.trim() || null,
-    cargo: document.getElementById('reg-cargo')?.value?.trim() || null,
-    telefono: document.getElementById('reg-telefono')?.value?.trim() || null
-  };
-  const pass2 = document.getElementById('reg-pass2')?.value || '';
-
-  if (!formData.nombre || !formData.apellido || !formData.rut || !formData.correo || !formData.contrasena) {
-    showToast('Completa todos los campos obligatorios.', 'error');
-    return;
-  }
-
-  if (!formData.tipoUsuario) {
-    showToast('Selecciona un tipo de usuario.', 'error');
-    return;
-  }
-
-  if (formData.contrasena !== pass2) {
-    showToast('Las contraseñas no coinciden.', 'error');
-    return;
-  }
-
-  try {
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      showToast(data.error || 'Error en registro', 'error');
-      return;
-    }
-
-    showToast('Registro exitoso. Ahora puedes iniciar sesión.', 'success');
-    const form = document.getElementById('form-registro');
-    if (form) form.reset();
-    const empresaFields = document.getElementById('empresa-fields');
-    if (empresaFields) empresaFields.style.display = 'none';
-    closeModal('registro');
-  } catch (err) {
-    showToast('Error de conexión con el servidor', 'error');
-  }
-}
-
 // ESTO "ENCHUFA" EL BOTÓN CUANDO LA PÁGINA CARGA
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Analizando DOM para conectar eventos...");
+  const formLogin = document.getElementById('form-login');
+  if (formLogin) {
+    formLogin.addEventListener('submit', doLogin);
+  }
     const formRegistro = document.getElementById('form-registro');
     
     if (formRegistro) {
-        formRegistro.addEventListener('submit', enviarRegistroAWeb);
+    formRegistro.addEventListener('submit', doRegistro);
         console.log("✅ Formulario de registro conectado al JS.");
     } else {
         console.error("❌ ERROR: No se encontró '<form id=\"form-registro\">' en el HTML.");
