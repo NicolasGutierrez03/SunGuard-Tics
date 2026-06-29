@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
     await sql`
       INSERT INTO usuarios (rut, nombre, apellido, correo, password_hash, rol, empresa_id, cargo)
-      VALUES (${rut}, ${nombre}, ${apellido}, ${correo}, passwordHash, ${rolAsignado}, ${empresaId}, ${cargo});
+      VALUES (${rut}, ${nombre}, ${apellido}, ${correo}, ${passwordHash}, ${rolAsignado}, ${empresaId}, ${cargo});
     `;
 
     return res.status(201).json({ message: 'Usuario registrado exitosamente' });
