@@ -869,31 +869,68 @@ async function enviarRegistroAWeb(event) {
 }
 
 // Función para el Login
-async function enviarLoginAWeb(event) {
-  event.preventDefault();
-  
-  // CORRECCIÓN: Se cambió 'login-correo' por 'login-email' para coincidir con tu HTML
-  const datos = {
-    correo: document.getElementById('login-email').value, // <-- CORREGIDO
-    contrasena: document.getElementById('login-pass').value
-  };
+// Función para el Registro (Versión corregida y anti-bloqueos)
+async function enviarRegistroAWeb(event) {
+  event.preventDefault(); // Evita que la página se recargue
 
   try {
-    const response = await fetch('/api/auth/login', {
+    // Capturamos los elementos de forma segura usando ?.value
+    const nombre = document.getElementById('reg-nombre')?.value || '';
+    const apellido = document.getElementById('reg-apellido')?.value || '';
+    const rut = document.getElementById('reg-rut')?.value || '';
+    const correo = document.getElementById('reg-email')?.value || '';
+    const contrasena = document.getElementById('reg-pass')?.value || '';
+    const tipoUsuario = document.getElementById('reg-tipo')?.value || '';
+    const empresa = document.getElementById('reg-empresa')?.value || '';
+    const cargo = document.getElementById('reg-cargo')?.value || '';
+    const telefono = document.getElementById('reg-telefono')?.value || '';
+    const pass2 = document.getElementById('reg-pass2')?.value || '';
+
+    // Validación de campos obligatorios en el Frontend
+    if (!nombre || !apellido || !rut || !correo || !contrasena) {
+      showToast('Por favor, rellena todos los campos obligatorios.', 'error');
+      return;
+    }
+
+    // Validación de contraseñas idénticas
+    if (contrasena !== pass2) {
+      showToast('Las contraseñas no coinciden.', 'error');
+      return;
+    }
+
+    const formData = {
+      nombre,
+      apellido,
+      rut,
+      correo,
+      contrasena,
+      tipoUsuario,
+      empresa,
+      cargo,
+      telefono
+    };
+
+    // Forzamos un mensaje en la consola del navegador para saber que sí se envió
+    console.log('Enviando datos a la API...', formData);
+
+    const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(datos)
+      body: JSON.stringify(formData)
     });
     
     const data = await response.json();
+    
     if (response.ok) {
-      localStorage.setItem('sunguard_token', data.token);
-      localStorage.setItem('sunguard_user', JSON.stringify(data.user));
-      window.location.href = 'dashboard.html';
+      showToast('Registro exitoso. Ahora puedes iniciar sesión.', 'success');
+      if (typeof closeModal === 'function') closeModal('registro');
     } else {
-      showToast(data.error || 'Credenciales inválidas', 'error');
+      // Si Neon o la API fallan, el error saltará aquí de forma visible
+      showToast(data.error || 'Error en registro', 'error');
+      if (data.details) console.error('Detalles de Neon:', data.details);
     }
   } catch (err) {
-    showToast('Error de conexión con el servidor', 'error');
+    console.error('Error crítico en el JS del Frontend:', err);
+    showToast('Error interno en el formulario', 'error');
   }
 }
