@@ -432,22 +432,154 @@ function toggleEmpresaFields() {
   toggleEmpresaFields2();
 }
 
-function linkDevice() {
+// ============================================================
+// VINCULACIÓN DE DISPOSITIVO ESP32
+// ============================================================
+async function linkDevice() {
   const codeInput = document.getElementById('device-code');
   const status = document.getElementById('device-status');
   if (!codeInput || !status) return;
+  
   const code = codeInput.value.trim();
   if (!code) {
-    status.innerHTML = '<span style="color:var(--red)">Por favor ingresa el código del dispositivo.</span>';
+    status.innerHTML = '<span style="color:var(--red)">Por favor ingresa la MAC del dispositivo.</span>';
     return;
   }
-  if (code.match(/^SG-[A-Z0-9]{4}-[A-Z0-9]{4}$/i)) {
-    status.innerHTML = '<span style="color:var(--green)">✓ Dispositivo ' + code.toUpperCase() + ' vinculado correctamente.</span>';
-    showToast('Dispositivo vinculado con éxito.', 'success');
+
+  // Verificar si hay un usuario logueado
+  if (!APP || !APP.user || !APP.user.id) {
+    status.innerHTML = '<span style="color:var(--red)">Debes iniciar sesión primero.</span>';
+    return;
+  }
+
+  // Permitir formato MAC (XX:XX:XX:XX:XX:XX) o tu formato original SG-XXXX-XXXX
+  if (code.match(/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/i) || code.match(/^SG-[A-Z0-9]{4}-[A-Z0-9]{4}$/i)) {
+    status.innerHTML = '<span style="color:var(--yellow)">Vinculando...</span>';
+
+    try {
+      const response = await fetch('/api/devices/link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_mac: code, usuario_id: APP.user.id })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        status.innerHTML = `<span style="color:var(--green)">✓ Dispositivo ${code.toUpperCase()} vinculado correctamente.</span>`;
+        showToast('Dispositivo vinculado con éxito.', 'success');
+        if (isPage('dashboard')) loadDashboardData(); // Recargar datos si estás en dashboard
+      } else {
+        status.innerHTML = `<span style="color:var(--red)">⚠ Error: ${data.error}</span>`;
+      }
+    } catch (error) {
+      status.innerHTML = '<span style="color:var(--red)">⚠ Error de conexión.</span>';
+    }
   } else {
-    status.innerHTML = '<span style="color:var(--yellow)">⚠ Código inválido. Formato esperado: SG-XXXX-XXXX</span>';
+    status.innerHTML = '<span style="color:var(--yellow)">⚠ Código inválido. Formato esperado: MAC Address o SG-XXXX-XXXX</span>';
   }
 }
+
+// ============================================================
+// CARGA DE DATOS (DASHBOARD E HISTORIAL)
+// ============================================================
+let uvChartInstance = null; // Para guardar la instancia de Chart.js
+
+async function loadDashboardData() {
+  if (!APP || !APP.user || !APP.user.id) return;
+
+  try {
+    const res = await fetch(`/api/data/dashboard?usuario_id=${APP.user.id}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    // 1. Actualizar UV Actual
+    const uvActual = parseFloat(data.actual.indice_uv_actual || 0);
+    document.getElementById('uv-gauge-val').textContent = uvActual.toFixed(1);
+    
+    // 2. Actualizar Dosis Acumulada
+    const dosis = parseFloat(data.actual.dosis_acumulada || 0);
+    document.getElementById('dosis-val').textContent = Math.round(dosis);
+    document.getElementById('dosis-bar').style.width = `${Math.min((dosis / 400) * 100, 100)}%`;
+
+    // 3. Semáforo
+    const estado = data.actual.estado_alerta || 'Seguro';
+    document.getElementById('sf-green').className = estado === 'Seguro' ? 'sf-light sf-light-green active' : 'sf-light sf-light-green off';
+    document.getElementById('sf-yellow').className = estado === 'Precaucion' ? 'sf-light sf-light-yellow active' : 'sf-light sf-light-yellow off';
+    document.getElementById('sf-red').className = estado === 'Riesgo' ? 'sf-light sf-light-red active' : 'sf-light sf-light-red off';
+    
+    const sfLabel = document.getElementById('semaforo-label');
+    sfLabel.textContent = estado.toUpperCase();
+    sfLabel.style.color = estado === 'Seguro' ? '#2E7D32' : (estado === 'Precaucion' ? '#F9A825' : '#D32F2F');
+
+    // 4. Estadísticas
+    document.getElementById('stat-prom').textContent = parseFloat(data.stats.promedio || 0).toFixed(1);
+    document.getElementById('stat-max').textContent = parseFloat(data.stats.maximo || 0).toFixed(1);
+    document.getElementById('stat-min').textContent = parseFloat(data.stats.minimo || 0).toFixed(1);
+
+    // 5. Gráfica (Asumiendo que usas Chart.js)
+    if (window.Chart && data.chart && data.chart.length > 0) {
+      const ctx = document.getElementById('uv-chart');
+      if (ctx) {
+        if (uvChartInstance) uvChartInstance.destroy();
+        uvChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.chart.map(d => d.hora),
+            datasets: [{
+              label: 'Índice UV',
+              data: data.chart.map(d => d.indice_uv_actual),
+              borderColor: '#1E88E5',
+              tension: 0.3,
+              fill: true,
+              backgroundColor: 'rgba(30, 136, 229, 0.1)'
+            }]
+          }
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error cargando dashboard:', error);
+  }
+}
+
+async function loadHistorialData() {
+  if (!APP || !APP.user || !APP.user.id) return;
+
+  try {
+    const res = await fetch(`/api/data/historial?usuario_id=${APP.user.id}`);
+    const registros = await res.json();
+    if (!res.ok) throw new Error(registros.error);
+
+    const tbody = document.getElementById('historial-tbody');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+
+    registros.forEach(reg => {
+      let color = reg.estado_alerta === 'Seguro' ? '#2E7D32' : (reg.estado_alerta === 'Precaucion' ? '#F9A825' : '#D32F2F');
+      
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${new Date(reg.fecha).toLocaleDateString('es-CL')}</td>
+        <td>${reg.hora}</td>
+        <td>${parseFloat(reg.indice_uv_actual).toFixed(1)}</td>
+        <td>${Math.round(reg.dosis_acumulada)} J/m²</td>
+        <td style="color:${color}; font-weight:bold;">${reg.estado_alerta.toUpperCase()}</td>
+        <td>--</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    console.error('Error cargando historial:', error);
+  }
+}
+
+// Para hacer la aplicación "en tiempo real", puedes usar setInterval
+setInterval(() => {
+  if (APP.user && isPage('dashboard')) loadDashboardData();
+  if (APP.user && isPage('historial')) loadHistorialData();
+}, 10000); // Se actualiza cada 10 segundos
 
 // ============================================================
 // TEMPORIZADOR
