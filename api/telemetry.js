@@ -37,7 +37,7 @@ module.exports = async function handler(req, res) {
     let alerta = 'Seguro';
     if (dosis_acumulada >= 100.0) {
       alerta = 'Riesgo';
-    } else if (dosis_uv_acumulada >= 50.0) { // Nota: Corregí el nombre a dosis_acumulada
+    } else if (dosis_acumulada >= 50.0) { // <-- CAMBIADO AQUÍ (Quita el _uv)
       alerta = 'Precaucion';
     }
 
